@@ -1,8 +1,62 @@
 {% extends "base/base.html" %}
 {% block titulo %}Reportes{% endblock %}
 {% block topbar_titulo %}Reportes{% endblock %}
+
 {% block contenido %}
-<div class="cer-card">
-  <p style="color:#aaa;text-align:center;padding:32px;">Reportes — próximo paso.</p>
+
+<div class="cer-card" style="max-width:680px;">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">📊 Generar reporte Excel</span>
+  </div>
+
+  <p style="color:#555;font-size:14px;margin-bottom:24px;line-height:1.6;">
+    Exporta la correspondencia institucional a Excel con estadísticas,
+    gráfico de barras por tipo y listado detallado de todos los documentos.
+    Cumple con los requisitos de archivo de la <strong>Ley 594 de 2000</strong>.
+  </p>
+
+  <form method="get" action="{% url 'exportar_excel' %}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px;">
+          Fecha desde (opcional)
+        </label>
+        <input
+          type="date"
+          name="fecha_desde"
+          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;box-sizing:border-box;">
+      </div>
+      <div>
+        <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px;">
+          Fecha hasta (opcional)
+        </label>
+        <input
+          type="date"
+          name="fecha_hasta"
+          value="{{ hoy }}"
+          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;box-sizing:border-box;">
+      </div>
+    </div>
+
+    <div style="background:#f0f7f0;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;color:#2d6a4f;">
+      <strong>El archivo Excel incluirá:</strong>
+      <ul style="margin:8px 0 0 16px;line-height:1.8;">
+        <li>Hoja <strong>Resumen</strong> — estadísticas generales y tabla por tipo con gráfico de barras</li>
+        <li>Hoja <strong>Detalle</strong> — listado completo con todos los campos de cada documento</li>
+        <li>Colores institucionales CER y formato profesional</li>
+        <li>Documentos vencidos marcados en rojo, urgentes en naranja</li>
+      </ul>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button type="submit" class="btn-cer btn-primario" style="padding:10px 28px;font-size:15px;">
+        ⬇️ Descargar Excel
+      </button>
+      <span style="font-size:13px;color:#888;">
+        {{ total }} documento{% if total != 1 %}s{% endif %} en el sistema
+      </span>
+    </div>
+  </form>
 </div>
+
 {% endblock %}

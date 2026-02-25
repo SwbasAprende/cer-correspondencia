@@ -80,6 +80,7 @@
         {{ total }} resultado{% if total != 1 %}s{% endif %}
       </span>
     </span>
+  
     {% if user.puede_radicar %}
       <a href="{% url 'documento_nuevo' %}" class="btn-cer btn-primario">➕ Radicar nuevo</a>
     {% endif %}

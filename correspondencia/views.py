@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Documento, Trazabilidad
 from .forms import DocumentoForm
+from openpyxl import workbook
 from django.http import HttpResponse
 from django.utils import timezone
 from weasyprint import HTML
@@ -183,4 +184,76 @@ def documento_pdf_sticker(request, pk):
 
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="sticker-{doc.radicado}.pdf"'
+    return response
+
+def reporte_correspondencia_excel(request):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Correspondencia"
+
+    # Encabezados institucionales
+    ws.append([
+        "Número de Radicado",
+        "Fecha de Radicación",
+        "Hora de Radicación",
+        "Tipo",
+        "Estado",
+        "Prioridad",
+        "Remitente",
+        "Destinatario",
+        "Entidad",
+        "Asunto",
+        "Radicado por"
+    ])
+
+    queryset = Correspondencia.objects.all()
+
+    # 🔹 Reutilizar los filtros existentes
+    tipo = request.GET.get("tipo")
+    estado = request.GET.get("estado")
+    prioridad = request.GET.get("prioridad")
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
+
+    if tipo:
+        queryset = queryset.filter(tipo=tipo)
+
+    if estado:
+        queryset = queryset.filter(estado=estado)
+
+    if prioridad:
+        queryset = queryset.filter(prioridad=prioridad)
+
+    if fecha_inicio and fecha_fin:
+        queryset = queryset.filter(
+            fecha_radicacion__range=[fecha_inicio, fecha_fin]
+        )
+
+    queryset = queryset.order_by("-fecha_radicacion", "-hora_radicacion")
+
+    for c in queryset:
+        ws.append([
+            c.numero_radicado,
+            c.fecha_radicacion.strftime("%d/%m/%Y"),
+            c.hora_radicacion.strftime("%H:%M:%S"),
+            c.get_tipo_display(),
+            c.get_estado_display(),
+            c.get_prioridad_display(),
+            c.remitente,
+            c.destinatario,
+            c.entidad,
+            c.asunto,
+            str(c.radicado_por)
+        ])
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+
+    fecha_archivo = timezone.localtime(timezone.now()).strftime("%Y%m%d_%H%M")
+    response["Content-Disposition"] = (
+        f'attachment; filename="reporte_correspondencia_{fecha_archivo}.xlsx"'
+    )
+
+    wb.save(response)
     return response
