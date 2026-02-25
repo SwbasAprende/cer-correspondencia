@@ -4,7 +4,10 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Documento, Trazabilidad
 from .forms import DocumentoForm
-
+from django.http import HttpResponse
+from django.utils import timezone
+from weasyprint import HTML
+from django.template.loader import render_to_string
 
 @login_required
 def documento_lista(request):
@@ -133,3 +136,50 @@ def documento_editar(request, pk):
         form = DocumentoForm(instance=doc)
 
     return render(request, 'correspondencia/editar.html', {'form': form, 'documento': doc})
+
+@login_required
+def documento_pdf(request, pk):
+    """Genera el PDF completo del documento con membrete institucional."""
+    doc = get_object_or_404(Documento, pk=pk)
+
+    if doc.prioridad == 'confidencial' and not request.user.puede_ver_confidenciales:
+        messages.error(request, 'No tienes permiso para ver documentos confidenciales.')
+        return redirect('documento_lista')
+
+    fecha_rad, hora_rad = doc.fecha_hora_radicacion
+    trazabilidad = doc.trazabilidad.all().order_by('-fecha')
+
+    contexto = {
+        'documento':        doc,
+        'trazabilidad':     trazabilidad,
+        'fecha_rad':        fecha_rad,
+        'hora_rad':         hora_rad,
+        'fecha_generacion': timezone.now().strftime('%d/%m/%Y %H:%M:%S'),
+    }
+
+    html_string = render_to_string('correspondencia/pdf_detalle.html', contexto, request=request)
+    pdf_file    = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="CER-{doc.radicado}.pdf"'
+    return response
+
+
+@login_required
+def documento_pdf_sticker(request, pk):
+    """Genera el PDF del sticker de radicado (tamaño tarjeta)."""
+    doc = get_object_or_404(Documento, pk=pk)
+    fecha_rad, hora_rad = doc.fecha_hora_radicacion
+
+    contexto = {
+        'documento': doc,
+        'fecha_rad': fecha_rad,
+        'hora_rad':  hora_rad,
+    }
+
+    html_string = render_to_string('correspondencia/pdf_sticker.html', contexto, request=request)
+    pdf_file    = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="sticker-{doc.radicado}.pdf"'
+    return response

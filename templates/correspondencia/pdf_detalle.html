@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page {
+    size: letter;
+    margin: 2cm 2.5cm;
+    @bottom-right {
+      content: "Página " counter(page) " de " counter(pages);
+      font-size: 8pt; color: #888; font-family: Arial, sans-serif;
+    }
+    @bottom-left {
+      content: "Ley 594 de 2000 — Archivo General de la Nación";
+      font-size: 8pt; color: #888; font-family: Arial, sans-serif;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 10pt; color: #222; line-height: 1.5; }
+
+  /* Membrete */
+  .membrete {
+    width: 100%; border-bottom: 3pt solid #1a3a2a;
+    padding-bottom: 12pt; margin-bottom: 16pt;
+    display: table;
+  }
+  .membrete-texto { display: table-cell; vertical-align: middle; }
+  .membrete-nombre {
+    font-size: 14pt; font-weight: bold; color: #1a3a2a;
+    text-transform: uppercase; letter-spacing: 1pt;
+  }
+  .membrete-subtitulo { font-size: 9pt; color: #555; margin-top: 2pt; }
+  .membrete-radicado {
+    display: table-cell; vertical-align: middle;
+    text-align: right; width: 150pt;
+  }
+  .radicado-box {
+    border: 2pt solid #1a3a2a; border-radius: 4pt;
+    padding: 8pt 12pt; text-align: center;
+  }
+  .radicado-label { font-size: 7pt; color: #888; text-transform: uppercase; letter-spacing: 1pt; }
+  .radicado-numero {
+    font-size: 13pt; font-weight: bold; color: #1a3a2a;
+    font-family: 'Courier New', monospace; letter-spacing: 2pt;
+  }
+  .radicado-fecha { font-size: 8pt; color: #555; margin-top: 3pt; }
+
+  /* Título */
+  .doc-titulo { text-align: center; margin-bottom: 16pt; }
+  .doc-tipo {
+    font-size: 16pt; font-weight: bold; color: #1a3a2a;
+    text-transform: uppercase; letter-spacing: 2pt;
+  }
+  .doc-asunto { font-size: 11pt; color: #444; margin-top: 4pt; }
+
+  /* Secciones */
+  .seccion { margin-bottom: 14pt; }
+  .seccion-titulo {
+    font-size: 8pt; font-weight: bold; color: #fff;
+    background: #1a3a2a; padding: 4pt 10pt;
+    text-transform: uppercase; letter-spacing: 1pt; margin-bottom: 6pt;
+  }
+  .datos-tabla { width: 100%; border-collapse: collapse; }
+  .datos-tabla td { padding: 5pt 8pt; border-bottom: 1pt solid #eee; vertical-align: top; }
+  .datos-tabla td.etiqueta {
+    width: 35%; font-size: 8pt; font-weight: bold;
+    color: #888; text-transform: uppercase;
+  }
+  .datos-tabla td.valor { font-size: 10pt; color: #222; }
+
+  /* Badge estado */
+  .badge {
+    display: inline-block; padding: 2pt 8pt;
+    border-radius: 10pt; font-size: 8pt; font-weight: bold;
+  }
+  .estado-recibido   { background: #e3f2fd; color: #1565c0; }
+  .estado-en_tramite { background: #fff3e0; color: #e65100; }
+  .estado-respondido { background: #e8f5e9; color: #2e7d32; }
+  .estado-archivado  { background: #f3e5f5; color: #6a1b9a; }
+  .prioridad-urgente       { background: #ffebee; color: #c62828; }
+  .prioridad-confidencial  { background: #fce4ec; color: #880e4f; }
+  .prioridad-normal        { background: #f5f5f5; color: #616161; }
+
+  /* Firma */
+  .firma-seccion {
+    margin-top: 40pt; display: table; width: 100%;
+  }
+  .firma-bloque {
+    display: table-cell; text-align: center; width: 50%;
+    padding: 0 20pt;
+  }
+  .firma-linea {
+    border-top: 1pt solid #333; margin-bottom: 4pt; margin-top: 30pt;
+  }
+  .firma-nombre { font-size: 9pt; font-weight: bold; }
+  .firma-cargo  { font-size: 8pt; color: #888; }
+
+  /* Footer institucional */
+  .footer-doc {
+    margin-top: 24pt; border-top: 1pt solid #ddd;
+    padding-top: 8pt; text-align: center;
+    font-size: 7.5pt; color: #aaa;
+  }
+</style>
+</head>
+<body>
+
+<!-- MEMBRETE -->
+<div class="membrete">
+  <div class="membrete-texto">
+    <div class="membrete-nombre">Centro de Estudios Regionales</div>
+    <div class="membrete-subtitulo">Magdalena Medio — Sistema de Correspondencia Institucional</div>
+    <div class="membrete-subtitulo">Ley 594 de 2000 · Archivo General de la Nación</div>
+  </div>
+  <div class="membrete-radicado">
+    <div class="radicado-box">
+      <div class="radicado-label">N° de Radicado</div>
+      <div class="radicado-numero">{{ documento.radicado }}</div>
+      <div class="radicado-fecha">{{ fecha_rad }} · {{ hora_rad }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- TÍTULO -->
+<div class="doc-titulo">
+  <div class="doc-tipo">{{ documento.get_tipo_display }}</div>
+  <div class="doc-asunto">{{ documento.asunto }}</div>
+</div>
+
+<!-- DATOS PRINCIPALES -->
+<div class="seccion">
+  <div class="seccion-titulo">Información del documento</div>
+  <table class="datos-tabla">
+    <tr>
+      <td class="etiqueta">Remitente</td>
+      <td class="valor">{{ documento.remitente }}</td>
+      <td class="etiqueta">Destinatario</td>
+      <td class="valor">{{ documento.destinatario }}</td>
+    </tr>
+    {% if documento.entidad %}
+    <tr>
+      <td class="etiqueta">Entidad</td>
+      <td class="valor" colspan="3">{{ documento.entidad }}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td class="etiqueta">Flujo</td>
+      <td class="valor">{{ documento.get_flujo_display }}</td>
+      <td class="etiqueta">Actor ecosistema</td>
+      <td class="valor">{{ documento.get_actor_display }}</td>
+    </tr>
+    <tr>
+      <td class="etiqueta">Estado</td>
+      <td class="valor">
+        <span class="badge estado-{{ documento.estado }}">{{ documento.get_estado_display }}</span>
+      </td>
+      <td class="etiqueta">Prioridad</td>
+      <td class="valor">
+        <span class="badge prioridad-{{ documento.prioridad }}">{{ documento.get_prioridad_display }}</span>
+      </td>
+    </tr>
+    <tr>
+      <td class="etiqueta">Fecha radicación</td>
+      <td class="valor">{{ fecha_rad }}</td>
+      <td class="etiqueta">Fecha límite</td>
+      <td class="valor">
+        {{ documento.fecha_limite|date:"d/m/Y" }}
+        {% if documento.esta_vencido %}<span style="color:#c0392b;font-weight:bold;"> — VENCIDO</span>{% endif %}
+      </td>
+    </tr>
+    <tr>
+      <td class="etiqueta">Responsable</td>
+      <td class="valor">{{ documento.responsable|default:"Sin asignar" }}</td>
+      <td class="etiqueta">Radicado por</td>
+      <td class="valor">{{ documento.radicado_por|default:"—" }}</td>
+    </tr>
+  </table>
+</div>
+
+<!-- DESCRIPCIÓN -->
+{% if documento.descripcion %}
+<div class="seccion">
+  <div class="seccion-titulo">Descripción / Observaciones</div>
+  <p style="padding:8pt;font-size:10pt;line-height:1.6;">{{ documento.descripcion }}</p>
+</div>
+{% endif %}
+
+<!-- TRAZABILIDAD -->
+{% if trazabilidad %}
+<div class="seccion">
+  <div class="seccion-titulo">Historial de trazabilidad</div>
+  <table class="datos-tabla">
+    <tr style="background:#f5f5f5;">
+      <td class="etiqueta">Fecha y hora</td>
+      <td class="etiqueta">Estado anterior</td>
+      <td class="etiqueta">Estado nuevo</td>
+      <td class="etiqueta">Usuario</td>
+      <td class="etiqueta">Observación</td>
+    </tr>
+    {% for t in trazabilidad %}
+    <tr>
+      <td class="valor" style="font-size:8pt;">{{ t.fecha|date:"d/m/Y H:i" }}</td>
+      <td class="valor" style="font-size:8pt;">{{ t.get_estado_anterior_display|default:"—" }}</td>
+      <td class="valor" style="font-size:8pt;">{{ t.get_estado_nuevo_display }}</td>
+      <td class="valor" style="font-size:8pt;">{{ t.usuario|default:"—" }}</td>
+      <td class="valor" style="font-size:8pt;">{{ t.nota|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<!-- FIRMA -->
+<div class="firma-seccion">
+  <div class="firma-bloque">
+    <div class="firma-linea"></div>
+    <div class="firma-nombre">{{ documento.radicado_por|default:"Funcionario CER" }}</div>
+    <div class="firma-cargo">Radicó el documento</div>
+  </div>
+  <div class="firma-bloque">
+    <div class="firma-linea"></div>
+    <div class="firma-nombre">{{ documento.responsable|default:"Responsable asignado" }}</div>
+    <div class="firma-cargo">Responsable del trámite</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer-doc">
+  Documento generado el {{ fecha_generacion }} · Sistema de Correspondencia CER · Confidencial — Solo personal autorizado
+</div>
+
+</body>
+</html>

@@ -15,7 +15,8 @@
         {% if user.puede_radicar %}
         <a href="{% url 'documento_editar' documento.pk %}" class="btn-cer btn-secundario">✏️ Editar</a>
         {% endif %}
-        <button onclick="imprimirSticker()" class="btn-cer btn-dorado">🖨️ Imprimir sticker</button>
+        <a href="{% url 'documento_pdf' documento.pk %}" target="_blank" class="btn-cer btn-primario">📄 Descargar PDF</a>
+        <a href="{% url 'documento_pdf_sticker' documento.pk %}" target="_blank" class="btn-cer btn-dorado">🖨️ PDF Sticker</a>
       </div>
     </div>
 
