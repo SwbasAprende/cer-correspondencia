@@ -1,13 +1,17 @@
 """
-Configuracion del Sistema de Correspondencia Institucional - CER
+Configuración del Sistema de Correspondencia Institucional - CER
 """
 import os
 from pathlib import Path
+from decouple import config, Csv
+import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = "django-insecure-cer-2025-sistema-correspondencia-institucional"
-DEBUG = True
-ALLOWED_HOSTS = ["*"]
+
+# ── Seguridad ────────────────────────────────────────────────────────────────
+SECRET_KEY = config('SECRET_KEY')
+DEBUG      = config('DEBUG', default=False, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -54,12 +58,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+# ── Base de datos ────────────────────────────────────────────────────────────
+# En Railway usa PostgreSQL automáticamente, en local usa SQLite
+DATABASE_URL = config('DATABASE_URL', default='')
+
+if DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -68,24 +81,34 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-AUTH_USER_MODEL = "usuarios.Usuario"
-LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/dashboard/"
-LOGOUT_REDIRECT_URL = "/login/"
+AUTH_USER_MODEL       = "usuarios.Usuario"
+LOGIN_URL             = "/login/"
+LOGIN_REDIRECT_URL    = "/dashboard/"
+LOGOUT_REDIRECT_URL   = "/login/"
 
 LANGUAGE_CODE = "es-co"
-TIME_ZONE = "America/Bogota"
-USE_I18N = True
-USE_TZ = True
+TIME_ZONE     = "America/Bogota"
+USE_I18N      = True
+USE_TZ        = True
 
-STATIC_URL = "/static/"
+# ── Archivos estáticos ───────────────────────────────────────────────────────
+STATIC_URL       = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT      = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-MEDIA_URL = "/media/"
+MEDIA_URL  = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# ── Seguridad en producción ──────────────────────────────────────────────────
+if not DEBUG:
+    SECURE_SSL_REDIRECT        = True
+    SESSION_COOKIE_SECURE      = True
+    CSRF_COOKIE_SECURE         = True
+    SECURE_BROWSER_XSS_FILTER  = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# ── Configuración institucional CER ─────────────────────────────────────────
 CER_CONFIG = {
     "nombre": "Centro de Estudios Regionales",
     "sigla": "CER",
@@ -100,7 +123,7 @@ CER_CONFIG = {
         "OF": "Oficio",
         "MM": "Memorando",
         "CR": "Circular",
-        "RS": "Resolucion",
+        "RS": "Resolución",
         "AC": "Acta",
     },
     "dias_respuesta": {
@@ -110,8 +133,8 @@ CER_CONFIG = {
     },
 }
 
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10485760
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10485760
-ALLOWED_DOCUMENT_TYPES = ["application/pdf", "image/jpeg", "image/png"]
-ALLOWED_DOCUMENT_EXTENSIONS = [".pdf", ".jpg", ".jpeg", ".png"]
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+DATA_UPLOAD_MAX_MEMORY_SIZE    = 10485760
+FILE_UPLOAD_MAX_MEMORY_SIZE    = 10485760
+ALLOWED_DOCUMENT_TYPES         = ["application/pdf", "image/jpeg", "image/png"]
+ALLOWED_DOCUMENT_EXTENSIONS    = [".pdf", ".jpg", ".jpeg", ".png"]
+DEFAULT_AUTO_FIELD             = "django.db.models.BigAutoField"
