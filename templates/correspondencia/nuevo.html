@@ -1,0 +1,113 @@
+{% extends "base/base.html" %}
+{% block titulo %}Radicar documento{% endblock %}
+{% block topbar_titulo %}Radicar nuevo documento{% endblock %}
+
+{% block contenido %}
+<div class="cer-card">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">📋 Formulario de radicación</span>
+    <a href="{% url 'documento_lista' %}" class="btn-cer btn-secundario">← Volver</a>
+  </div>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <!-- FILA 1: Tipo, Flujo, Prioridad -->
+    <div class="cer-form-grid-3">
+      <div class="cer-form-grupo">
+        <label>{{ form.tipo.label }}</label>
+        {{ form.tipo }}
+      </div>
+      <div class="cer-form-grupo">
+        <label>{{ form.flujo.label }}</label>
+        {{ form.flujo }}
+      </div>
+      <div class="cer-form-grupo">
+        <label>{{ form.prioridad.label }}</label>
+        {{ form.prioridad }}
+      </div>
+    </div>
+
+    <!-- FILA 2: Actor del ecosistema -->
+    <div class="cer-form-grupo">
+      <label>{{ form.actor.label }}</label>
+      {{ form.actor }}
+    </div>
+
+    <!-- FILA 3: Remitente y Destinatario -->
+    <div class="cer-form-grid">
+      <div class="cer-form-grupo">
+        <label>{{ form.remitente.label }} *</label>
+        {{ form.remitente }}
+      </div>
+      <div class="cer-form-grupo">
+        <label>{{ form.destinatario.label }} *</label>
+        {{ form.destinatario }}
+      </div>
+    </div>
+
+    <!-- FILA 4: Entidad -->
+    <div class="cer-form-grupo">
+      <label>{{ form.entidad.label }}</label>
+      {{ form.entidad }}
+    </div>
+
+    <!-- FILA 5: Asunto -->
+    <div class="cer-form-grupo">
+      <label>{{ form.asunto.label }} *</label>
+      {{ form.asunto }}
+    </div>
+
+    <!-- FILA 6: Descripción -->
+    <div class="cer-form-grupo">
+      <label>{{ form.descripcion.label }}</label>
+      {{ form.descripcion }}
+    </div>
+
+    <!-- FILA 7: Fecha documento y Responsable -->
+    <div class="cer-form-grid">
+      <div class="cer-form-grupo">
+        <label>{{ form.fecha_documento.label }}</label>
+        {{ form.fecha_documento }}
+      </div>
+      <div class="cer-form-grupo">
+        <label>{{ form.responsable.label }}</label>
+        {{ form.responsable }}
+      </div>
+    </div>
+
+    <!-- FILA 8: Referencia y Archivo -->
+    <div class="cer-form-grid">
+      <div class="cer-form-grupo">
+        <label>{{ form.documento_referencia.label }}</label>
+        {{ form.documento_referencia }}
+      </div>
+      <div class="cer-form-grupo">
+        <label>{{ form.archivo.label }}</label>
+        {{ form.archivo }}
+        <small style="color:#888;font-size:0.78rem;">Formatos permitidos: PDF, JPG, PNG. Máximo 10 MB.</small>
+      </div>
+    </div>
+
+    <!-- ERRORES -->
+    {% if form.errors %}
+    <div class="cer-alerta alerta-error">
+      ❌ Por favor corrige los errores marcados en el formulario.
+      {% for field in form %}
+        {% for error in field.errors %}
+          <br>• <strong>{{ field.label }}:</strong> {{ error }}
+        {% endfor %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- BOTONES -->
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
+      <a href="{% url 'documento_lista' %}" class="btn-cer btn-secundario">Cancelar</a>
+      <button type="submit" class="btn-cer btn-primario">
+        ✅ Radicar documento
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

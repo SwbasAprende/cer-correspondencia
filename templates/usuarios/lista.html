@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+{% block titulo %}Usuarios{% endblock %}
+{% block topbar_titulo %}Gestión de Usuarios{% endblock %}
+
+{% block contenido %}
+<div class="cer-card">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">👥 Usuarios del sistema</span>
+    <a href="/admin/usuarios/usuario/add/" class="btn-cer btn-primario">➕ Nuevo usuario</a>
+  </div>
+
+  <table class="cer-tabla">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Usuario</th>
+        <th>Email</th>
+        <th>Rol</th>
+        <th>Cargo</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in usuarios %}
+      <tr>
+        <td>{{ u.get_full_name|default:"Sin nombre" }}</td>
+        <td><strong>{{ u.username }}</strong></td>
+        <td>{{ u.email|default:"—" }}</td>
+        <td>
+          <span class="cer-badge-rol rol-{{ u.rol }}">{{ u.get_rol_display }}</span>
+        </td>
+        <td>{{ u.cargo|default:"—" }}</td>
+        <td>
+          {% if u.activo_sistema %}
+            <span style="color:#065f46;font-weight:600;">✅ Activo</span>
+          {% else %}
+            <span style="color:#991b1b;font-weight:600;">❌ Inactivo</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="6" style="text-align:center;padding:32px;color:#aaa;">No hay usuarios registrados.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

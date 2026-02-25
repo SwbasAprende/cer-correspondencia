@@ -1,0 +1,234 @@
+{% extends "base/base.html" %}
+{% block titulo %}{{ documento.radicado }}{% endblock %}
+{% block topbar_titulo %}Detalle del documento{% endblock %}
+
+{% block contenido %}
+
+<!-- ENCABEZADO CON STICKER -->
+<div style="display:flex;gap:24px;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;">
+
+  <!-- Info principal -->
+  <div class="cer-card" style="flex:1;min-width:300px;margin-bottom:0;">
+    <div class="cer-card-header">
+      <span class="cer-card-titulo">📄 {{ documento.get_tipo_display }}</span>
+      <div style="display:flex;gap:8px;">
+        {% if user.puede_radicar %}
+        <a href="{% url 'documento_editar' documento.pk %}" class="btn-cer btn-secundario">✏️ Editar</a>
+        {% endif %}
+        <button onclick="imprimirSticker()" class="btn-cer btn-dorado">🖨️ Imprimir sticker</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">NÚMERO DE RADICADO</div>
+        <div class="cer-radicado" style="font-size:1.2rem;">{{ documento.radicado }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">FECHA Y HORA DE RADICACIÓN</div>
+        <div style="font-weight:700;color:#1b4332;">{{ fecha_rad }} — {{ hora_rad }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">ESTADO</div>
+        <span class="badge-estado estado-{{ documento.estado }}">{{ documento.get_estado_display }}</span>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">PRIORIDAD</div>
+        <span class="badge-prioridad prioridad-{{ documento.prioridad }}">{{ documento.get_prioridad_display }}</span>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">REMITENTE</div>
+        <div style="font-weight:600;">{{ documento.remitente }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">DESTINATARIO</div>
+        <div style="font-weight:600;">{{ documento.destinatario }}</div>
+      </div>
+      {% if documento.entidad %}
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">ENTIDAD</div>
+        <div>{{ documento.entidad }}</div>
+      </div>
+      {% endif %}
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">ACTOR DEL ECOSISTEMA</div>
+        <div>{{ documento.get_actor_display }}</div>
+      </div>
+      <div style="grid-column:1/-1;">
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">ASUNTO</div>
+        <div style="font-weight:600;font-size:1rem;">{{ documento.asunto }}</div>
+      </div>
+      {% if documento.descripcion %}
+      <div style="grid-column:1/-1;">
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">DESCRIPCIÓN</div>
+        <div>{{ documento.descripcion }}</div>
+      </div>
+      {% endif %}
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">FECHA LÍMITE</div>
+        <div class="{% if documento.esta_vencido %}vencido{% elif documento.dias_restantes <= 3 %}por-vencer{% endif %}">
+          {{ documento.fecha_limite|date:"d/m/Y" }}
+          {% if documento.dias_restantes is not None %}
+            — {% if documento.esta_vencido %}VENCIDO{% else %}{{ documento.dias_restantes }} días restantes{% endif %}
+          {% endif %}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">RESPONSABLE</div>
+        <div>{{ documento.responsable|default:"Sin asignar" }}</div>
+      </div>
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">RADICADO POR</div>
+        <div>{{ documento.radicado_por|default:"—" }}</div>
+      </div>
+      {% if documento.archivo %}
+      <div>
+        <div style="font-size:0.78rem;color:#888;margin-bottom:4px;">ARCHIVO DIGITAL</div>
+        <a href="{{ documento.archivo.url }}" target="_blank" class="btn-cer btn-secundario" style="padding:6px 12px;font-size:0.8rem;">
+          📎 Ver archivo
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- STICKER DE RADICADO -->
+  <div>
+    <div style="font-size:0.8rem;color:#888;margin-bottom:8px;font-weight:600;">STICKER DE RADICADO</div>
+    <div class="sticker-radicado" id="sticker-imprimir">
+      <div class="st-entidad">Centro de Estudios Regionales — CER</div>
+      <div class="st-numero">{{ documento.radicado }}</div>
+      <div class="st-fecha">📅 Fecha: {{ fecha_rad }}</div>
+      <div class="st-hora">🕐 Hora: {{ hora_rad }}</div>
+      <div style="margin-top:8px;">
+        <span class="st-tipo">{{ documento.get_tipo_display }}</span>
+        <span class="st-tipo" style="background:#666;margin-left:4px;">{{ documento.get_flujo_display }}</span>
+      </div>
+      <div style="font-size:0.7rem;color:#666;margin-top:8px;border-top:1px dashed #ccc;padding-top:6px;">
+        {{ documento.asunto|truncatechars:50 }}
+      </div>
+    </div>
+    <button onclick="imprimirSticker()" class="btn-cer btn-dorado" style="width:100%;justify-content:center;margin-top:8px;">
+      🖨️ Imprimir
+    </button>
+  </div>
+</div>
+
+<!-- CAMBIO DE ESTADO -->
+{% if user.puede_radicar %}
+<div class="cer-card">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">🔄 Cambiar estado del documento</span>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="cer-form-grid">
+      <div class="cer-form-grupo">
+        <label>Nuevo estado</label>
+        <select name="nuevo_estado" class="cer-input">
+          {% for val, label in estados %}
+          <option value="{{ val }}" {% if val == documento.estado %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="cer-form-grupo">
+        <label>Observación del cambio</label>
+        <input type="text" name="nota" class="cer-input" placeholder="Motivo o descripción del cambio de estado">
+      </div>
+    </div>
+    <button type="submit" class="btn-cer btn-primario">Actualizar estado</button>
+  </form>
+</div>
+{% endif %}
+
+<!-- TRAZABILIDAD -->
+<div class="cer-card">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">📜 Historial de trazabilidad</span>
+  </div>
+  {% if trazabilidad %}
+  <table class="cer-tabla">
+    <thead>
+      <tr><th>Fecha y hora</th><th>Estado anterior</th><th>Estado nuevo</th><th>Usuario</th><th>Observación</th></tr>
+    </thead>
+    <tbody>
+      {% for t in trazabilidad %}
+      <tr>
+        <td>{{ t.fecha|date:"d/m/Y H:i:s" }}</td>
+        <td>
+          {% if t.estado_anterior %}
+          <span class="badge-estado estado-{{ t.estado_anterior }}">{{ t.get_estado_anterior_display }}</span>
+          {% else %}—{% endif %}
+        </td>
+        <td><span class="badge-estado estado-{{ t.estado_nuevo }}">{{ t.get_estado_nuevo_display }}</span></td>
+        <td>{{ t.usuario|default:"—" }}</td>
+        <td>{{ t.nota|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:#aaa;text-align:center;padding:24px;">Sin historial de cambios.</p>
+  {% endif %}
+</div>
+
+<!-- SCRIPT PARA IMPRIMIR SOLO EL STICKER -->
+<script>
+function imprimirSticker() {
+  const sticker = document.getElementById('sticker-imprimir').outerHTML;
+  const ventana = window.open('', '_blank', 'width=400,height=350');
+  ventana.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Radicado {{ documento.radicado }}</title>
+      <style>
+        body { font-family: 'Courier New', monospace; padding: 20px; }
+        .sticker-radicado {
+          border: 2px solid #1b4332;
+          border-radius: 8px;
+          padding: 16px;
+          width: 320px;
+        }
+        .st-entidad {
+          font-size: 0.7rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          color: #1b4332;
+          letter-spacing: 1px;
+          border-bottom: 1px solid #ccc;
+          padding-bottom: 6px;
+          margin-bottom: 8px;
+        }
+        .st-numero {
+          font-size: 1.4rem;
+          font-weight: 900;
+          color: #1b4332;
+          letter-spacing: 2px;
+        }
+        .st-fecha, .st-hora {
+          font-size: 0.82rem;
+          color: #333;
+          margin-top: 4px;
+        }
+        .st-tipo {
+          margin-top: 8px;
+          font-size: 0.75rem;
+          background: #1b4332;
+          color: white;
+          padding: 2px 8px;
+          border-radius: 4px;
+          display: inline-block;
+        }
+      </style>
+    </head>
+    <body onload="window.print();window.close();">
+      ${sticker}
+    </body>
+    </html>
+  `);
+  ventana.document.close();
+}
+</script>
+
+{% endblock %}

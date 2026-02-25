@@ -1,0 +1,104 @@
+{% extends "base/base.html" %}
+{% block titulo %}Dashboard{% endblock %}
+{% block topbar_titulo %}Dashboard — Correspondencia CER{% endblock %}
+
+{% block contenido %}
+
+<div class="cer-stats">
+  <div class="cer-stat">
+    <div class="cer-stat-icono stat-verde">📄</div>
+    <div class="cer-stat-info">
+      <div class="numero">{{ total }}</div>
+      <div class="etiqueta">Total documentos</div>
+    </div>
+  </div>
+  <div class="cer-stat">
+    <div class="cer-stat-icono stat-azul">📥</div>
+    <div class="cer-stat-info">
+      <div class="numero">{{ recibidos }}</div>
+      <div class="etiqueta">Recibidos</div>
+    </div>
+  </div>
+  <div class="cer-stat">
+    <div class="cer-stat-icono stat-naranja">⏳</div>
+    <div class="cer-stat-info">
+      <div class="numero">{{ en_tramite }}</div>
+      <div class="etiqueta">En trámite</div>
+    </div>
+  </div>
+  <div class="cer-stat">
+    <div class="cer-stat-icono stat-rojo">🚨</div>
+    <div class="cer-stat-info">
+      <div class="numero">{{ vencidos }}</div>
+      <div class="etiqueta">Vencidos</div>
+    </div>
+  </div>
+</div>
+
+{% if urgentes %}
+<div class="cer-card">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">⚠️ Documentos urgentes activos</span>
+  </div>
+  <table class="cer-tabla">
+    <thead>
+      <tr><th>Radicado</th><th>Asunto</th><th>Remitente</th><th>Fecha límite</th><th>Estado</th></tr>
+    </thead>
+    <tbody>
+      {% for doc in urgentes %}
+      <tr>
+        <td><span class="cer-radicado">{{ doc.radicado }}</span></td>
+        <td>{{ doc.asunto|truncatechars:50 }}</td>
+        <td>{{ doc.remitente }}</td>
+        <td class="{% if doc.esta_vencido %}vencido{% elif doc.dias_restantes <= 2 %}por-vencer{% endif %}">
+          {{ doc.fecha_limite|date:"d/m/Y" }}
+          {% if doc.dias_restantes is not None %}
+            ({% if doc.esta_vencido %}VENCIDO{% else %}{{ doc.dias_restantes }} días{% endif %})
+          {% endif %}
+        </td>
+        <td><span class="badge-estado estado-{{ doc.estado }}">{{ doc.get_estado_display }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<div class="cer-card">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">📋 Documentos recientes</span>
+    {% if user.puede_radicar %}
+    <a href="{% url 'documento_nuevo' %}" class="btn-cer btn-primario">➕ Radicar nuevo</a>
+    {% endif %}
+  </div>
+  {% if recientes %}
+  <table class="cer-tabla">
+    <thead>
+      <tr><th>Radicado</th><th>Tipo</th><th>Asunto</th><th>Remitente</th><th>Estado</th><th>Prioridad</th><th>Fecha</th></tr>
+    </thead>
+    <tbody>
+      {% for doc in recientes %}
+      <tr>
+        <td><a href="{% url 'documento_detalle' doc.pk %}"><span class="cer-radicado">{{ doc.radicado }}</span></a></td>
+        <td>{{ doc.get_tipo_display }}</td>
+        <td>{{ doc.asunto|truncatechars:45 }}</td>
+        <td>{{ doc.remitente }}</td>
+        <td><span class="badge-estado estado-{{ doc.estado }}">{{ doc.get_estado_display }}</span></td>
+        <td><span class="badge-prioridad prioridad-{{ doc.prioridad }}">{{ doc.get_prioridad_display }}</span></td>
+        <td>{{ doc.fecha_radicacion|date:"d/m/Y" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align:center;padding:48px;color:#aaa;">
+    <div style="font-size:3rem;margin-bottom:12px;">📭</div>
+    <p>No hay documentos registrados aún.</p>
+    {% if user.puede_radicar %}
+    <a href="{% url 'documento_nuevo' %}" class="btn-cer btn-primario" style="margin-top:16px;">Radicar el primer documento</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar sesión — CER</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/cer.css' %}">
+</head>
+<body>
+<div class="cer-login-page">
+  <div class="cer-login-box">
+    <div class="cer-login-logo">
+      <div class="sigla">CER</div>
+      <div class="nombre">Centro de Estudios Regionales</div>
+      <div class="sistema">Sistema de Correspondencia Institucional</div>
+    </div>
+    {% if form.errors %}
+    <div class="cer-alerta alerta-error">
+      ❌ Usuario o contraseña incorrectos.
+    </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="cer-form-grupo">
+        <label for="id_username">Usuario</label>
+        <input type="text" name="username" id="id_username" placeholder="Tu usuario" autofocus required>
+      </div>
+      <div class="cer-form-grupo">
+        <label for="id_password">Contraseña</label>
+        <input type="password" name="password" id="id_password" placeholder="Tu contraseña" required>
+      </div>
+      <button type="submit" class="btn-cer btn-primario" style="width:100%;justify-content:center;padding:12px;">
+        Ingresar al sistema
+      </button>
+    </form>
+    <p style="text-align:center;margin-top:24px;font-size:0.78rem;color:#aaa;">
+      Acceso restringido — Solo personal autorizado del CER<br>
+      Ley 594 de 2000 · Archivo General de la Nación
+    </p>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block titulo %}Sistema CER{% endblock %} — CER</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/cer.css' %}">
+</head>
+<body>
+<div class="cer-wrapper">
+
+  <aside class="cer-sidebar">
+    <div class="cer-sidebar-logo">
+      <div class="sigla">CER</div>
+      <div class="nombre">Centro de Estudios Regionales</div>
+    </div>
+    <nav class="cer-nav">
+      <div class="cer-nav-section">Principal</div>
+      <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}activo{% endif %}">
+        <span class="icono">📊</span> Dashboard
+      </a>
+      <div class="cer-nav-section">Correspondencia</div>
+      <a href="{% url 'documento_lista' %}" class="{% if 'documento' in request.resolver_match.url_name %}activo{% endif %}">
+        <span class="icono">📄</span> Todos los documentos
+      </a>
+      {% if user.puede_radicar %}
+      <a href="{% url 'documento_nuevo' %}">
+        <span class="icono">➕</span> Radicar documento
+      </a>
+      {% endif %}
+      <a href="{% url 'documento_lista' %}?estado=en_tramite">
+        <span class="icono">⏳</span> En trámite
+      </a>
+      <a href="{% url 'documento_lista' %}?estado=recibido">
+        <span class="icono">📥</span> Recibidos
+      </a>
+      <div class="cer-nav-section">Archivo</div>
+      <a href="{% url 'documento_lista' %}?estado=archivado">
+        <span class="icono">🗂️</span> Archivo digital
+      </a>
+      <a href="{% url 'reporte_lista' %}">
+        <span class="icono">📈</span> Reportes
+      </a>
+      {% if user.puede_radicar %}
+      <div class="cer-nav-section">Plantillas</div>
+      <a href="{% url 'plantilla_lista' %}">
+        <span class="icono">📝</span> Plantillas CER
+      </a>
+      {% endif %}
+      {% if user.puede_gestionar_usuarios %}
+      <div class="cer-nav-section">Administración</div>
+      <a href="{% url 'usuario_lista' %}">
+        <span class="icono">👥</span> Usuarios
+      </a>
+      {% endif %}
+    </nav>
+    <div class="cer-sidebar-footer">
+      v{{ CER_VERSION }} &copy; {{ anio_actual }} CER
+    </div>
+  </aside>
+
+  <div class="cer-main">
+    <header class="cer-topbar">
+      <div class="cer-topbar-titulo">{% block topbar_titulo %}Sistema de Correspondencia{% endblock %}</div>
+      <div class="cer-topbar-usuario">
+        <span class="cer-badge-rol rol-{{ user.rol }}">{{ user.get_rol_display }}</span>
+        <span>{{ user.get_full_name|default:user.username }}</span>
+        <div class="cer-avatar">{{ user.username|first|upper }}</div>
+        <a href="{% url 'logout' %}" class="btn-cer btn-secundario" style="padding:6px 14px;font-size:0.8rem;">Salir</a>
+      </div>
+    </header>
+
+    <div style="padding: 0 32px;">
+      {% for mensaje in messages %}
+      <div class="cer-alerta alerta-{{ mensaje.tags }}">
+        {% if mensaje.tags == 'success' %}✅{% elif mensaje.tags == 'error' %}❌{% elif mensaje.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+        {{ mensaje }}
+      </div>
+      {% endfor %}
+    </div>
+
+    <main class="cer-content">
+      {% block contenido %}{% endblock %}
+    </main>
+  </div>
+</div>
+</body>
+</html>

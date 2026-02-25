@@ -1,0 +1,424 @@
+/* ================================================================
+   SISTEMA DE CORRESPONDENCIA INSTITUCIONAL — CER
+   ================================================================ */
+
+:root {
+  --cer-verde:        #2d6a4f;
+  --cer-verde-claro:  #52b788;
+  --cer-verde-oscuro: #1b4332;
+  --cer-dorado:       #d4a017;
+  --cer-gris:         #f8f9fa;
+  --cer-gris-medio:   #6c757d;
+  --cer-blanco:       #ffffff;
+  --cer-texto:        #212529;
+  --cer-borde:        #dee2e6;
+  --sombra:           0 2px 8px rgba(0,0,0,0.10);
+  --sombra-hover:     0 4px 16px rgba(0,0,0,0.15);
+  --radio:            8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: #f0f2f5;
+  color: var(--cer-texto);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+a { color: var(--cer-verde); text-decoration: none; }
+a:hover { color: var(--cer-verde-oscuro); text-decoration: underline; }
+
+/* ── LAYOUT ── */
+.cer-wrapper { display: flex; min-height: 100vh; }
+
+.cer-sidebar {
+  width: 260px;
+  min-height: 100vh;
+  background: var(--cer-verde-oscuro);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 100;
+}
+
+.cer-sidebar-logo {
+  padding: 24px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: center;
+}
+
+.cer-sidebar-logo .sigla {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--cer-dorado);
+  letter-spacing: 2px;
+}
+
+.cer-sidebar-logo .nombre {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.7);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+.cer-nav { padding: 16px 0; flex: 1; }
+
+.cer-nav-section {
+  padding: 8px 20px 4px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 8px;
+}
+
+.cer-nav a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 20px;
+  color: rgba(255,255,255,0.85);
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+
+.cer-nav a:hover,
+.cer-nav a.activo {
+  background: rgba(255,255,255,0.08);
+  color: var(--cer-blanco);
+  border-left-color: var(--cer-dorado);
+  text-decoration: none;
+}
+
+.cer-nav a .icono { font-size: 1.1rem; width: 20px; text-align: center; }
+
+.cer-sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+}
+
+.cer-main { margin-left: 260px; flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+.cer-topbar {
+  background: var(--cer-blanco);
+  border-bottom: 1px solid var(--cer-borde);
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--sombra);
+}
+
+.cer-topbar-titulo { font-size: 1.1rem; font-weight: 600; color: var(--cer-verde-oscuro); }
+
+.cer-topbar-usuario { display: flex; align-items: center; gap: 12px; font-size: 0.88rem; }
+
+.cer-avatar {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: var(--cer-verde);
+  color: white;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.cer-badge-rol {
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.rol-administrador { background: #d4edda; color: #155724; }
+.rol-director      { background: #cce5ff; color: #004085; }
+.rol-consulta      { background: #fff3cd; color: #856404; }
+
+.cer-content { padding: 32px; flex: 1; }
+
+/* ── TARJETAS ── */
+.cer-card {
+  background: var(--cer-blanco);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.cer-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--cer-gris);
+}
+
+.cer-card-titulo { font-size: 1rem; font-weight: 700; color: var(--cer-verde-oscuro); }
+
+/* ── ESTADÍSTICAS ── */
+.cer-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.cer-stat {
+  background: var(--cer-blanco);
+  border-radius: var(--radio);
+  padding: 22px 24px;
+  box-shadow: var(--sombra);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: box-shadow 0.2s;
+}
+
+.cer-stat:hover { box-shadow: var(--sombra-hover); }
+
+.cer-stat-icono {
+  width: 52px; height: 52px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+}
+
+.stat-verde   { background: #d8f3dc; }
+.stat-azul    { background: #dbeafe; }
+.stat-naranja { background: #fef3c7; }
+.stat-rojo    { background: #fee2e2; }
+
+.cer-stat-info .numero { font-size: 1.9rem; font-weight: 800; color: var(--cer-verde-oscuro); line-height: 1; }
+.cer-stat-info .etiqueta { font-size: 0.82rem; color: var(--cer-gris-medio); margin-top: 4px; }
+
+/* ── BOTONES ── */
+.btn-cer {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: var(--radio);
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-primario { background: var(--cer-verde); color: white; }
+.btn-primario:hover { background: var(--cer-verde-oscuro); color: white; text-decoration: none; }
+
+.btn-secundario { background: var(--cer-gris); color: var(--cer-texto); border: 1px solid var(--cer-borde); }
+.btn-secundario:hover { background: #e9ecef; text-decoration: none; }
+
+.btn-peligro { background: #dc3545; color: white; }
+.btn-peligro:hover { background: #b02a37; color: white; text-decoration: none; }
+
+.btn-dorado { background: var(--cer-dorado); color: white; }
+.btn-dorado:hover { background: #b8860b; color: white; text-decoration: none; }
+
+/* ── TABLA ── */
+.cer-tabla { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+
+.cer-tabla th {
+  background: var(--cer-verde-oscuro);
+  color: white;
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.cer-tabla th:first-child { border-radius: 8px 0 0 0; }
+.cer-tabla th:last-child  { border-radius: 0 8px 0 0; }
+.cer-tabla td { padding: 12px 16px; border-bottom: 1px solid var(--cer-borde); vertical-align: middle; }
+.cer-tabla tr:hover td { background: #f8fffe; }
+.cer-tabla tr:last-child td { border-bottom: none; }
+
+/* ── BADGES ── */
+.badge-estado { padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.estado-recibido   { background: #dbeafe; color: #1e40af; }
+.estado-en_tramite { background: #fef3c7; color: #92400e; }
+.estado-respondido { background: #d1fae5; color: #065f46; }
+.estado-archivado  { background: #f3f4f6; color: #374151; }
+
+.badge-prioridad { padding: 3px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+.prioridad-normal       { background: #f3f4f6; color: #374151; }
+.prioridad-urgente      { background: #fee2e2; color: #991b1b; }
+.prioridad-confidencial { background: #ede9fe; color: #5b21b6; }
+
+/* ── FORMULARIOS ── */
+.cer-form-grupo { margin-bottom: 20px; }
+.cer-form-grupo label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--cer-verde-oscuro); margin-bottom: 6px; }
+.cer-form-grupo input,
+.cer-form-grupo select,
+.cer-form-grupo textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--cer-borde);
+  border-radius: var(--radio);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.cer-form-grupo input:focus,
+.cer-form-grupo select:focus,
+.cer-form-grupo textarea:focus {
+  outline: none;
+  border-color: var(--cer-verde);
+  box-shadow: 0 0 0 3px rgba(45,106,79,0.1);
+}
+
+.cer-form-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.cer-form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+/* ── ALERTAS ── */
+.cer-alerta {
+  padding: 12px 16px;
+  border-radius: var(--radio);
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.alerta-success { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+.alerta-error   { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+.alerta-warning { background: #fef3c7; color: #92400e; border-left: 4px solid #f59e0b; }
+.alerta-info    { background: #dbeafe; color: #1e40af; border-left: 4px solid #3b82f6; }
+
+/* ── LOGIN ── */
+.cer-login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--cer-verde-oscuro) 0%, var(--cer-verde) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cer-login-box {
+  background: white;
+  border-radius: 16px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.cer-login-logo { text-align: center; margin-bottom: 32px; }
+.cer-login-logo .sigla { font-size: 3rem; font-weight: 900; color: var(--cer-verde-oscuro); letter-spacing: 3px; }
+.cer-login-logo .nombre { font-size: 0.78rem; color: var(--cer-gris-medio); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; }
+.cer-login-logo .sistema { font-size: 0.9rem; color: var(--cer-verde); font-weight: 600; margin-top: 8px; }
+
+/* ── RADICADO ── */
+.cer-radicado {
+  font-family: "Courier New", monospace;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--cer-verde-oscuro);
+  background: #f0fdf4;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+}
+
+/* ── STICKER DE RADICADO PARA IMPRIMIR ── */
+@media print {
+  body * { visibility: hidden; }
+  .sticker-radicado, .sticker-radicado * { visibility: visible; }
+  .sticker-radicado { position: absolute; left: 0; top: 0; }
+}
+
+.sticker-radicado {
+  border: 2px solid var(--cer-verde-oscuro);
+  border-radius: 8px;
+  padding: 12px 16px;
+  width: 320px;
+  font-family: "Courier New", monospace;
+  background: white;
+}
+
+.sticker-radicado .st-entidad {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--cer-verde-oscuro);
+  letter-spacing: 1px;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.sticker-radicado .st-numero {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--cer-verde-oscuro);
+  letter-spacing: 2px;
+}
+
+.sticker-radicado .st-fecha {
+  font-size: 0.78rem;
+  color: #444;
+  margin-top: 4px;
+}
+
+.sticker-radicado .st-hora {
+  font-size: 0.78rem;
+  color: #444;
+}
+
+.sticker-radicado .st-tipo {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  background: var(--cer-verde-oscuro);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+/* ── ESTADOS ── */
+.vencido    { color: #dc2626; font-weight: 600; }
+.por-vencer { color: #d97706; font-weight: 600; }
+
+/* ── RESPONSIVO ── */
+@media (max-width: 768px) {
+  .cer-sidebar { width: 0; overflow: hidden; }
+  .cer-main { margin-left: 0; }
+  .cer-form-grid, .cer-form-grid-3 { grid-template-columns: 1fr; }
+  .cer-stats { grid-template-columns: 1fr 1fr; }
+  .cer-content { padding: 16px; }
+}
+
+/* ── Input genérico ── */
+.cer-input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--cer-borde);
+  border-radius: var(--radio);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+.cer-input:focus {
+  outline: none;
+  border-color: var(--cer-verde);
+  box-shadow: 0 0 0 3px rgba(45,106,79,0.1);
+}
