@@ -60,8 +60,9 @@ def documento_nuevo(request):
         if form.is_valid():
             doc = form.save(commit=False)
             doc.radicado_por    = request.user
-            doc.fecha_radicacion = timezone.now().date()
-            doc.hora_radicacion  = timezone.now().time()
+            dt = timezone.localtime(timezone.now())
+            doc.fecha_radicacion = dt.date()
+            doc.hora_radicacion  = dt.time()
             doc.save()
             # Registrar en trazabilidad
             Trazabilidad.objects.create(
