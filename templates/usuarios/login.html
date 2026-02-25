@@ -11,10 +11,12 @@
 <div class="cer-login-page">
   <div class="cer-login-box">
     <div class="cer-login-logo">
-      <div class="sigla">CER</div>
-      <div class="nombre">Centro de Estudios Regionales</div>
-      <div class="sistema">Sistema de Correspondencia Institucional</div>
-    </div>
+  <img src="{% static 'img/logo_cer.jpg' %}" 
+       alt="Logo CER" 
+       style="max-width:180px;max-height:100px;object-fit:contain;margin-bottom:12px;">
+  <div class="nombre">Centro de Estudios Regionales</div>
+  <div class="sistema">Sistema de Correspondencia Institucional</div>
+</div>
     {% if form.errors %}
     <div class="cer-alerta alerta-error">
       ❌ Usuario o contraseña incorrectos.

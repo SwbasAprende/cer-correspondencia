@@ -12,9 +12,11 @@
 
   <aside class="cer-sidebar">
     <div class="cer-sidebar-logo">
-      <div class="sigla">CER</div>
-      <div class="nombre">Centro de Estudios Regionales</div>
-    </div>
+  <img src="{% static 'img/logo_cer.jpg' %}" 
+       alt="Logo CER" 
+       style="max-width:140px;max-height:80px;object-fit:contain;margin-bottom:8px;">
+  <div class="nombre">Centro de Estudios Regionales</div>
+</div>
     <nav class="cer-nav">
       <div class="cer-nav-section">Principal</div>
       <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}activo{% endif %}">
