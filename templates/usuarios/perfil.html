@@ -1,0 +1,106 @@
+{% extends "base/base.html" %}
+{% block titulo %}Mi perfil{% endblock %}
+{% block topbar_titulo %}Mi perfil{% endblock %}
+
+{% block contenido %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start;">
+
+  <!-- DATOS PERSONALES -->
+  <div class="cer-card">
+    <div class="cer-card-header">
+      <span class="cer-card-titulo">👤 Datos personales</span>
+    </div>
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="cer-form-grid">
+        <div class="cer-form-grupo">
+          <label>Nombre</label>
+          <input type="text" name="first_name" class="cer-input" value="{{ usuario.first_name }}">
+        </div>
+        <div class="cer-form-grupo">
+          <label>Apellido</label>
+          <input type="text" name="last_name" class="cer-input" value="{{ usuario.last_name }}">
+        </div>
+      </div>
+      <div class="cer-form-grupo">
+        <label>Correo electrónico</label>
+        <input type="email" name="email" class="cer-input" value="{{ usuario.email }}">
+      </div>
+      <div class="cer-form-grupo">
+        <label>Cargo institucional</label>
+        <input type="text" name="cargo" class="cer-input" value="{{ usuario.cargo }}">
+      </div>
+      <div class="cer-form-grupo">
+        <label>Teléfono</label>
+        <input type="text" name="telefono" class="cer-input" value="{{ usuario.telefono }}">
+      </div>
+      <div class="cer-form-grupo">
+        <label>Firma digital (imagen PNG/JPG)</label>
+        {% if usuario.firma %}
+        <div style="margin-bottom:8px;">
+          <img src="{{ usuario.firma.url }}" alt="Firma actual"
+               style="max-height:60px;border:1px solid #dee2e6;border-radius:4px;padding:4px;">
+          <div style="font-size:0.78rem;color:#888;">Firma actual</div>
+        </div>
+        {% endif %}
+        <input type="file" name="firma" class="cer-input" accept="image/*">
+      </div>
+      <button type="submit" class="btn-cer btn-primario">💾 Guardar cambios</button>
+    </form>
+  </div>
+
+  <!-- INFO DE CUENTA -->
+  <div>
+    <div class="cer-card">
+      <div class="cer-card-header">
+        <span class="cer-card-titulo">🔐 Información de cuenta</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;font-size:0.9rem;">
+        <div>
+          <div style="color:#888;font-size:0.78rem;">USUARIO</div>
+          <div style="font-weight:700;">{{ usuario.username }}</div>
+        </div>
+        <div>
+          <div style="color:#888;font-size:0.78rem;">ROL</div>
+          <span class="cer-badge-rol rol-{{ usuario.rol }}">{{ usuario.get_rol_display }}</span>
+        </div>
+        <div>
+          <div style="color:#888;font-size:0.78rem;">MIEMBRO DESDE</div>
+          <div>{{ usuario.date_joined|date:"d/m/Y" }}</div>
+        </div>
+        <div>
+          <div style="color:#888;font-size:0.78rem;">ÚLTIMO ACCESO</div>
+          <div>{{ usuario.last_login|date:"d/m/Y H:i" }}</div>
+        </div>
+        <div>
+          <div style="color:#888;font-size:0.78rem;">DOCUMENTOS RADICADOS</div>
+          <div style="font-weight:700;">{{ usuario.documentos_radicados.count }}</div>
+        </div>
+      </div>
+      <div style="margin-top:20px;">
+        <a href="{% url 'cambiar_password' %}" class="btn-cer btn-secundario" style="width:100%;justify-content:center;">
+          🔑 Cambiar contraseña
+        </a>
+      </div>
+    </div>
+
+    <div class="cer-card">
+      <div class="cer-card-header">
+        <span class="cer-card-titulo">📋 Mis documentos recientes</span>
+      </div>
+      {% for doc in usuario.documentos_radicados.all|slice:":5" %}
+      <div style="padding:8px 0;border-bottom:1px solid #f0f0f0;font-size:0.85rem;">
+        <a href="{% url 'documento_detalle' doc.pk %}">
+          <span class="cer-radicado" style="font-size:0.85rem;">{{ doc.radicado }}</span>
+        </a>
+        <span style="color:#888;margin-left:8px;">{{ doc.asunto|truncatechars:35 }}</span>
+      </div>
+      {% empty %}
+      <p style="color:#aaa;font-size:0.85rem;">No has radicado documentos aún.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

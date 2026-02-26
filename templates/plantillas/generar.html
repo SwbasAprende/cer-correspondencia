@@ -1,0 +1,95 @@
+{% extends "base/base.html" %}
+{% block titulo %}Generar PDF{% endblock %}
+{% block topbar_titulo %}Generar documento PDF — {{ documento.radicado }}{% endblock %}
+
+{% block contenido %}
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start;">
+
+  <!-- EDITOR -->
+  <div class="cer-card">
+    <div class="cer-card-header">
+      <span class="cer-card-titulo">📄 Editor de contenido</span>
+    </div>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px;margin-bottom:20px;">
+        <div style="font-size:0.8rem;color:#888;margin-bottom:4px;">DOCUMENTO</div>
+        <div style="font-family:'Courier New',monospace;font-weight:700;font-size:1.1rem;color:#1b4332;">
+          {{ documento.radicado }}
+        </div>
+        <div style="font-size:0.85rem;color:#444;margin-top:4px;">
+          {{ documento.get_tipo_display }} &nbsp;·&nbsp;
+          {{ documento.asunto|truncatechars:60 }}
+        </div>
+      </div>
+
+      <div class="cer-form-grupo">
+        <label>Contenido del documento *</label>
+        <textarea name="contenido" class="cer-input" rows="20"
+                  placeholder="Escriba o edite el contenido del documento...">{{ contenido_base }}</textarea>
+        <small style="color:#888;font-size:0.78rem;">
+          Separa los párrafos con una línea en blanco. El membrete, radicado, destinatario y firma se agregan automáticamente.
+        </small>
+      </div>
+
+      <div class="cer-form-grid">
+        <div class="cer-form-grupo">
+          <label>Nombre del firmante</label>
+          <input type="text" name="firmante_nombre" class="cer-input" value="{{ firmante_nombre }}">
+        </div>
+        <div class="cer-form-grupo">
+          <label>Cargo del firmante</label>
+          <input type="text" name="firmante_cargo" class="cer-input" value="{{ firmante_cargo }}">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <a href="{% url 'documento_detalle' documento.pk %}" class="btn-cer btn-secundario">← Volver</a>
+        <button type="submit" class="btn-cer btn-primario">
+          📥 Generar y descargar PDF
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- PANEL LATERAL -->
+  <div>
+    <div class="cer-card">
+      <div class="cer-card-header">
+        <span class="cer-card-titulo">ℹ️ Datos del documento</span>
+      </div>
+      <div style="font-size:0.85rem;display:flex;flex-direction:column;gap:10px;">
+        <div><span style="color:#888;">Radicado:</span><br><strong>{{ documento.radicado }}</strong></div>
+        <div><span style="color:#888;">Tipo:</span><br>{{ documento.get_tipo_display }}</div>
+        <div><span style="color:#888;">Fecha:</span><br>{{ documento.fecha_radicacion|date:"d/m/Y" }}</div>
+        <div><span style="color:#888;">Hora:</span><br>{{ documento.hora_radicacion|time:"H:i:s" }}</div>
+        <div><span style="color:#888;">Remitente:</span><br>{{ documento.remitente }}</div>
+        <div><span style="color:#888;">Destinatario:</span><br>{{ documento.destinatario }}</div>
+        <div><span style="color:#888;">Asunto:</span><br>{{ documento.asunto }}</div>
+        <div><span style="color:#888;">Prioridad:</span><br>
+          <span class="badge-prioridad prioridad-{{ documento.prioridad }}">{{ documento.get_prioridad_display }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="cer-card">
+      <div class="cer-card-header">
+        <span class="cer-card-titulo">📋 El PDF incluirá</span>
+      </div>
+      <div style="font-size:0.82rem;color:#444;display:flex;flex-direction:column;gap:6px;">
+        <div>✅ Logo y membrete del CER</div>
+        <div>✅ Número de radicado</div>
+        <div>✅ Fecha y hora exacta</div>
+        <div>✅ Datos de remitente y destinatario</div>
+        <div>✅ Asunto y prioridad</div>
+        <div>✅ Contenido que escribas</div>
+        <div>✅ Firma con nombre y cargo</div>
+        <div>✅ Pie de página institucional</div>
+        <div>✅ Referencia Ley 594 de 2000</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

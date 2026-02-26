@@ -1,3 +1,4 @@
+from .notificaciones import notificar_nuevo_documento, notificar_cambio_estado
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -72,6 +73,7 @@ def documento_nuevo(request):
                 usuario      = request.user,
                 nota         = 'Documento radicado en el sistema.'
             )
+            notificar_nuevo_documento(doc)
             messages.success(request, f'Documento radicado exitosamente con número {doc.radicado}')
             return redirect('documento_detalle', pk=doc.pk)
     else:
@@ -106,6 +108,7 @@ def documento_detalle(request, pk):
             if nuevo_estado == 'respondido':
                 doc.fecha_respuesta = timezone.now().date()
             doc.save()
+            notificar_cambio_estado(doc, doc.estado, nuevo_estado, request.user, nota)
             messages.success(request, f'Estado actualizado a: {doc.get_estado_display()}')
             return redirect('documento_detalle', pk=doc.pk)
 

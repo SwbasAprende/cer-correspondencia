@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from correspondencia.models import Documento
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 
 
 @login_required
@@ -38,3 +40,41 @@ def usuario_lista(request):
         return redirect('dashboard')
     usuarios = Usuario.objects.all().order_by('last_name')
     return render(request, 'usuarios/lista.html', {'usuarios': usuarios})
+
+@login_required
+def perfil(request):
+    if request.method == 'POST':
+        # Actualizar datos personales
+        user = request.user
+        user.first_name = request.POST.get('first_name', user.first_name)
+        user.last_name  = request.POST.get('last_name',  user.last_name)
+        user.email      = request.POST.get('email',      user.email)
+        user.cargo      = request.POST.get('cargo',      user.cargo)
+        user.telefono   = request.POST.get('telefono',   user.telefono)
+
+        # Firma digital
+        if 'firma' in request.FILES:
+            user.firma = request.FILES['firma']
+
+        user.save()
+        messages.success(request, 'Perfil actualizado correctamente.')
+        return redirect('perfil')
+
+    return render(request, 'usuarios/perfil.html', {'usuario': request.user})
+
+
+@login_required
+def cambiar_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, '✅ Contraseña cambiada exitosamente.')
+            return redirect('perfil')
+        else:
+            messages.error(request, '❌ Por favor corrige los errores.')
+    else:
+        form = PasswordChangeForm(request.user)
+
+    return render(request, 'usuarios/cambiar_password.html', {'form': form})

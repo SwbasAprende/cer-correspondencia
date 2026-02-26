@@ -1,62 +1,160 @@
 {% extends "base/base.html" %}
 {% block titulo %}Reportes{% endblock %}
-{% block topbar_titulo %}Reportes{% endblock %}
+{% block topbar_titulo %}Reportes de Correspondencia{% endblock %}
 
 {% block contenido %}
 
-<div class="cer-card" style="max-width:680px;">
+<!-- FILTROS -->
+<div class="cer-card">
   <div class="cer-card-header">
-    <span class="cer-card-titulo">📊 Generar reporte Excel</span>
+    <span class="cer-card-titulo">📊 Filtrar reporte</span>
+  </div>
+  <form method="get" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;">
+    <div class="cer-form-grupo" style="margin:0;min-width:140px;">
+      <label>Año</label>
+      <select name="anio" class="cer-input">
+        {% for a in anios %}
+        <option value="{{ a }}" {% if a == anio %}selected{% endif %}>{{ a }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="cer-form-grupo" style="margin:0;min-width:160px;">
+      <label>Mes (opcional)</label>
+      <select name="mes" class="cer-input">
+        <option value="">— Todos los meses —</option>
+        {% for num, nombre in meses %}
+        <option value="{{ num }}" {% if num == mes %}selected{% endif %}>{{ nombre }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn-cer btn-primario">📊 Generar reporte</button>
+    <a href="{% url 'exportar_excel' %}?anio={{ anio }}{% if mes %}&mes={{ mes }}{% endif %}"
+       class="btn-cer btn-dorado">
+      📥 Exportar Excel
+    </a>
+  </form>
+</div>
+
+<!-- TARJETAS DE RESUMEN -->
+<div class="cer-stats">
+  <div class="cer-stat">
+    <div class="cer-stat-icono stat-verde">📄</div>
+    <div class="cer-stat-info">
+      <div class="numero">{{ total }}</div>
+      <div class="etiqueta">Total documentos</div>
+    </div>
+  </div>
+  <div class="cer-stat">
+    <div class="cer-stat-icono stat-azul">📥</div>
+    <div class="cer-stat-info">
+      <div class="numero">{{ entrada }}</div>
+      <div class="etiqueta">Entrada</div>
+    </div>
+  </div>
+  <div class="cer-stat">
+    <div class="cer-stat-icono stat-verde">📤</div>
+    <div class="cer-stat-info">
+      <div class="numero">{{ salida }}</div>
+      <div class="etiqueta">Salida</div>
+    </div>
+  </div>
+  <div class="cer-stat">
+    <div class="cer-stat-icono stat-rojo">🚨</div>
+    <div class="cer-stat-info">
+      <div class="numero">{{ vencidos }}</div>
+      <div class="etiqueta">Vencidos</div>
+    </div>
+  </div>
+</div>
+
+<!-- TABLAS DE RESUMEN -->
+<div class="cer-form-grid">
+
+  <!-- Por estado -->
+  <div class="cer-card">
+    <div class="cer-card-header">
+      <span class="cer-card-titulo">Por estado</span>
+    </div>
+
+    <!-- Versión simple funcional -->
+    <table class="cer-tabla">
+      <thead><tr><th>Estado</th><th style="text-align:center;">Cantidad</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-estado estado-recibido">Recibido</span></td>
+            <td style="text-align:center;font-weight:700;">{{ por_estado.recibido }}</td></tr>
+        <tr><td><span class="badge-estado estado-en_tramite">En Trámite</span></td>
+            <td style="text-align:center;font-weight:700;">{{ por_estado.en_tramite }}</td></tr>
+        <tr><td><span class="badge-estado estado-respondido">Respondido</span></td>
+            <td style="text-align:center;font-weight:700;">{{ por_estado.respondido }}</td></tr>
+        <tr><td><span class="badge-estado estado-archivado">Archivado</span></td>
+            <td style="text-align:center;font-weight:700;">{{ por_estado.archivado }}</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <p style="color:#555;font-size:14px;margin-bottom:24px;line-height:1.6;">
-    Exporta la correspondencia institucional a Excel con estadísticas,
-    gráfico de barras por tipo y listado detallado de todos los documentos.
-    Cumple con los requisitos de archivo de la <strong>Ley 594 de 2000</strong>.
-  </p>
-
-  <form method="get" action="{% url 'exportar_excel' %}">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
-      <div>
-        <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px;">
-          Fecha desde (opcional)
-        </label>
-        <input
-          type="date"
-          name="fecha_desde"
-          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;box-sizing:border-box;">
-      </div>
-      <div>
-        <label style="font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:6px;">
-          Fecha hasta (opcional)
-        </label>
-        <input
-          type="date"
-          name="fecha_hasta"
-          value="{{ hoy }}"
-          style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;box-sizing:border-box;">
-      </div>
+  <!-- Por tipo -->
+  <div class="cer-card">
+    <div class="cer-card-header">
+      <span class="cer-card-titulo">Por tipo de documento</span>
     </div>
+    <table class="cer-tabla">
+      <thead><tr><th>Tipo</th><th style="text-align:center;">Cantidad</th></tr></thead>
+      <tbody>
+        <tr><td>📄 Oficio</td>     <td style="text-align:center;font-weight:700;">{{ por_tipo.OF }}</td></tr>
+        <tr><td>📋 Memorando</td>  <td style="text-align:center;font-weight:700;">{{ por_tipo.MM }}</td></tr>
+        <tr><td>📢 Circular</td>   <td style="text-align:center;font-weight:700;">{{ por_tipo.CR }}</td></tr>
+        <tr><td>⚖️ Resolución</td> <td style="text-align:center;font-weight:700;">{{ por_tipo.RS }}</td></tr>
+        <tr><td>📑 Acta</td>       <td style="text-align:center;font-weight:700;">{{ por_tipo.AC }}</td></tr>
+      </tbody>
+    </table>
+  </div>
 
-    <div style="background:#f0f7f0;border-radius:8px;padding:16px;margin-bottom:20px;font-size:13px;color:#2d6a4f;">
-      <strong>El archivo Excel incluirá:</strong>
-      <ul style="margin:8px 0 0 16px;line-height:1.8;">
-        <li>Hoja <strong>Resumen</strong> — estadísticas generales y tabla por tipo con gráfico de barras</li>
-        <li>Hoja <strong>Detalle</strong> — listado completo con todos los campos de cada documento</li>
-        <li>Colores institucionales CER y formato profesional</li>
-        <li>Documentos vencidos marcados en rojo, urgentes en naranja</li>
-      </ul>
-    </div>
+</div>
 
-    <div style="display:flex;align-items:center;gap:12px;">
-      <button type="submit" class="btn-cer btn-primario" style="padding:10px 28px;font-size:15px;">
-        ⬇️ Descargar Excel
-      </button>
-      <span style="font-size:13px;color:#888;">
-        {{ total }} documento{% if total != 1 %}s{% endif %} en el sistema
-      </span>
-    </div>
-  </form>
+<!-- TABLA DETALLADA -->
+<div class="cer-card">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">
+      📋 Detalle — {{ total }} documento{% if total != 1 %}s{% endif %}
+      {% if mes %}({{ meses|dictsort:mes }}){% endif %}
+      {{ anio }}
+    </span>
+    <a href="{% url 'exportar_excel' %}?anio={{ anio }}{% if mes %}&mes={{ mes }}{% endif %}"
+       class="btn-cer btn-dorado">📥 Exportar Excel</a>
+  </div>
+
+  {% if docs %}
+  <div style="overflow-x:auto;">
+    <table class="cer-tabla">
+      <thead>
+        <tr>
+          <th>Radicado</th><th>Tipo</th><th>Asunto</th>
+          <th>Remitente</th><th>Estado</th><th>Prioridad</th><th>Fecha</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for doc in docs %}
+        <tr>
+          <td><a href="{% url 'documento_detalle' doc.pk %}">
+            <span class="cer-radicado">{{ doc.radicado }}</span>
+          </a></td>
+          <td>{{ doc.get_tipo_display }}</td>
+          <td>{{ doc.asunto|truncatechars:45 }}</td>
+          <td>{{ doc.remitente|truncatechars:25 }}</td>
+          <td><span class="badge-estado estado-{{ doc.estado }}">{{ doc.get_estado_display }}</span></td>
+          <td><span class="badge-prioridad prioridad-{{ doc.prioridad }}">{{ doc.get_prioridad_display }}</span></td>
+          <td>{{ doc.fecha_radicacion|date:"d/m/Y" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:48px;color:#aaa;">
+    <div style="font-size:3rem;">📭</div>
+    <p>No hay documentos para el período seleccionado.</p>
+  </div>
+  {% endif %}
 </div>
 
 {% endblock %}

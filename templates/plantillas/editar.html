@@ -1,0 +1,40 @@
+{% extends "base/base.html" %}
+{% block titulo %}Editar plantilla{% endblock %}
+{% block topbar_titulo %}Editar plantilla — {{ plantilla.get_tipo_display }}{% endblock %}
+
+{% block contenido %}
+<div class="cer-card">
+  <div class="cer-card-header">
+    <span class="cer-card-titulo">✏️ Plantilla: {{ plantilla.get_tipo_display }}</span>
+    <a href="{% url 'plantilla_lista' %}" class="btn-cer btn-secundario">← Volver</a>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="cer-form-grupo">
+      <label>Nombre de la plantilla</label>
+      <input type="text" name="nombre" class="cer-input" value="{{ plantilla.nombre }}">
+    </div>
+    <div class="cer-form-grupo">
+      <label>Encabezado / Considerandos (opcional)</label>
+      <textarea name="encabezado" class="cer-input" rows="3"
+                placeholder="Texto introductorio, considerandos legales, etc.">{{ plantilla.encabezado }}</textarea>
+    </div>
+    <div class="cer-form-grupo">
+      <label>Cuerpo del documento *</label>
+      <textarea name="cuerpo" class="cer-input" rows="16"
+                placeholder="Contenido base de la plantilla...">{{ plantilla.cuerpo }}</textarea>
+      <small style="color:#888;">Este texto aparecerá precargado al generar un PDF desde cualquier documento de este tipo.</small>
+    </div>
+    <div class="cer-form-grupo">
+      <label>Pie / Cierre (opcional)</label>
+      <textarea name="pie" class="cer-input" rows="3"
+                placeholder="Texto de cierre, notas finales, etc.">{{ plantilla.pie }}</textarea>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+      <a href="{% url 'plantilla_lista' %}" class="btn-cer btn-secundario">Cancelar</a>
+      <button type="submit" class="btn-cer btn-primario">💾 Guardar plantilla</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
