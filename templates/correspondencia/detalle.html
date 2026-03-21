@@ -12,8 +12,9 @@
     <div class="cer-card-header">
       <span class="cer-card-titulo">📄 {{ documento.get_tipo_display }}</span>
       <div style="display:flex;gap:8px;">
-        {% if user.puede_radicar %}
-        <a href="{% url 'documento_editar' documento.pk %}" class="btn-cer btn-secundario">✏️ Editar<a href="{% url 'generar_pdf' documento.pk %}" class="btn-cer btn-primario">📥 Generar PDF</a>
+        {% if perms.correspondencia.change_documento %}
+        <a href="{% url 'documento_editar' documento.pk %}" class="btn-cer btn-secundario">✏️ Editar</a>
+        <a href="{% url 'generar_pdf' documento.pk %}" class="btn-cer btn-primario">📥 Generar PDF</a>
         {% endif %}
         <a href="{% url 'documento_pdf' documento.pk %}" target="_blank" class="btn-cer btn-primario">📄 Descargar PDF</a>
         <a href="{% url 'documento_pdf_sticker' documento.pk %}" target="_blank" class="btn-cer btn-dorado">🖨️ PDF Sticker</a>
@@ -116,7 +117,7 @@
 </div>
 
 <!-- CAMBIO DE ESTADO -->
-{% if user.puede_radicar %}
+{% if perms.correspondencia.change_documento %}
 <div class="cer-card">
   <div class="cer-card-header">
     <span class="cer-card-titulo">🔄 Cambiar estado del documento</span>

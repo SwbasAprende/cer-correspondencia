@@ -1,6 +1,6 @@
 import os
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.http import HttpResponse, FileResponse
 from django.utils import timezone
@@ -20,12 +20,9 @@ def plantilla_lista(request):
     })
 
 @login_required
+@permission_required('plantillas.change_plantilladocumento', raise_exception=False)
 def plantilla_editar(request, tipo):
     """Editar el contenido base de una plantilla"""
-    if not request.user.puede_radicar:
-        messages.error(request, 'No tienes permiso para editar plantillas.')
-        return redirect('plantilla_lista')
-
     plantilla, creada = PlantillaDocumento.objects.get_or_create(
         tipo=tipo,
         defaults={
@@ -48,16 +45,13 @@ def plantilla_editar(request, tipo):
 
 
 @login_required
+@permission_required('plantillas.add_documentogenerado', raise_exception=False)
 def generar_documento_pdf(request, documento_pk):
     """
     Vista principal: muestra el editor con datos precargados
     y genera el PDF al hacer submit.
     """
     documento = get_object_or_404(Documento, pk=documento_pk)
-
-    if not request.user.puede_radicar:
-        messages.error(request, 'No tienes permiso para generar documentos.')
-        return redirect('documento_detalle', pk=documento_pk)
 
     # Cargar plantilla base del tipo de documento
     try:

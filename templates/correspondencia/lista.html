@@ -81,7 +81,7 @@
       </span>
     </span>
   
-    {% if user.puede_radicar %}
+    {% if perms.correspondencia.add_documento %}
       <a href="{% url 'documento_nuevo' %}" class="btn-cer btn-primario">➕ Radicar nuevo</a>
     {% endif %}
   </div>
@@ -187,7 +187,7 @@
       <a href="{% url 'documento_lista' %}" class="btn-cer btn-secundario">Limpiar filtros</a>
     {% else %}
       <p style="font-size:13px;margin:0 0 16px;">Aún no hay documentos radicados en el sistema</p>
-      {% if user.puede_radicar %}
+      {% if perms.correspondencia.add_documento %}
         <a href="{% url 'documento_nuevo' %}" class="btn-cer btn-primario">➕ Radicar primer documento</a>
       {% endif %}
     {% endif %}

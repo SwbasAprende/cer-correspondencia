@@ -32,7 +32,7 @@
         {% endif %}
       </div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-        {% if user.puede_radicar %}
+        {% if perms.plantillas.change_plantilladocumento %}
         <a href="{% url 'plantilla_editar' tipo_cod %}" class="btn-cer btn-secundario" style="font-size:0.8rem;padding:6px 12px;">
           ✏️ Editar plantilla
         </a>

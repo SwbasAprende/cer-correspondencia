@@ -1,6 +1,6 @@
 from .notificaciones import notificar_nuevo_documento, notificar_cambio_estado
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.utils import timezone
 from .models import Documento, Trazabilidad
@@ -52,11 +52,9 @@ def documento_lista(request):
 
 
 @login_required
+@permission_required('correspondencia.add_documento', raise_exception=False)
 def documento_nuevo(request):
-    if not request.user.puede_radicar:
-        messages.error(request, 'No tienes permiso para radicar documentos.')
-        return redirect('dashboard')
-
+    # Permiso verificado por decorador, si llegamos aquí es porque tiene permiso
     if request.method == 'POST':
         form = DocumentoForm(request.POST, request.FILES)
         if form.is_valid():
@@ -88,12 +86,12 @@ def documento_detalle(request, pk):
     trazabilidad = doc.trazabilidad.all().order_by('-fecha')
 
     # Verificar acceso a confidenciales
-    if doc.prioridad == 'confidencial' and not request.user.puede_ver_confidenciales:
+    if doc.prioridad == 'confidencial' and not request.user.has_perm('correspondencia.view_confidenciales'):
         messages.error(request, 'No tienes permiso para ver documentos confidenciales.')
         return redirect('documento_lista')
 
-    # Cambio de estado
-    if request.method == 'POST' and request.user.puede_radicar:
+    # Cambio de estado (requiere permiso de cambiar documento)
+    if request.method == 'POST' and request.user.has_perm('correspondencia.change_documento'):
         nuevo_estado = request.POST.get('nuevo_estado')
         nota         = request.POST.get('nota', '')
         if nuevo_estado and nuevo_estado != doc.estado:
@@ -125,11 +123,9 @@ def documento_detalle(request, pk):
 
 
 @login_required
+@permission_required('correspondencia.change_documento', raise_exception=False)
 def documento_editar(request, pk):
     doc = get_object_or_404(Documento, pk=pk)
-    if not request.user.puede_radicar:
-        messages.error(request, 'No tienes permiso para editar documentos.')
-        return redirect('documento_detalle', pk=pk)
 
     if request.method == 'POST':
         form = DocumentoForm(request.POST, request.FILES, instance=doc)
@@ -147,7 +143,8 @@ def documento_pdf(request, pk):
     """Genera el PDF completo del documento con membrete institucional."""
     doc = get_object_or_404(Documento, pk=pk)
 
-    if doc.prioridad == 'confidencial' and not request.user.puede_ver_confidenciales:
+    # Verificar acceso a documentos confidenciales
+    if doc.prioridad == 'confidencial' and not request.user.has_perm('correspondencia.view_confidenciales'):
         messages.error(request, 'No tienes permiso para ver documentos confidenciales.')
         return redirect('documento_lista')
 

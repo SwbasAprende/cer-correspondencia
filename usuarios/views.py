@@ -1,9 +1,16 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.utils import timezone
 from correspondencia.models import Documento
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
+
+
+def sin_permisos(request):
+    """
+    Página que se muestra cuando el usuario no tiene permisos suficientes.
+    """
+    return render(request, 'errors/sin_permisos.html', status=403)
 
 
 @login_required
@@ -32,12 +39,10 @@ def dashboard(request):
 
 
 @login_required
+@permission_required('usuarios.change_usuario', False)
 def usuario_lista(request):
     from .models import Usuario
     from django.contrib import messages
-    if not request.user.puede_gestionar_usuarios:
-        messages.error(request, 'No tienes permiso para ver esta sección.')
-        return redirect('dashboard')
     usuarios = Usuario.objects.all().order_by('last_name')
     return render(request, 'usuarios/lista.html', {'usuarios': usuarios})
 

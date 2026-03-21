@@ -26,7 +26,7 @@
       <a href="{% url 'documento_lista' %}" class="{% if 'documento' in request.resolver_match.url_name %}activo{% endif %}">
         <span class="icono">📄</span> Todos los documentos
       </a>
-      {% if user.puede_radicar %}
+      {% if perms.correspondencia.add_documento %}
       <a href="{% url 'documento_nuevo' %}">
         <span class="icono">➕</span> Radicar documento
       </a>
@@ -44,13 +44,13 @@
       <a href="{% url 'reporte_lista' %}">
         <span class="icono">📈</span> Reportes
       </a>
-      {% if user.puede_radicar %}
+      {% if perms.plantillas.change_plantilladocumento %}
       <div class="cer-nav-section">Plantillas</div>
       <a href="{% url 'plantilla_lista' %}">
         <span class="icono">📝</span> Plantillas CER
       </a>
       {% endif %}
-      {% if user.puede_gestionar_usuarios %}
+      {% if perms.usuarios.change_usuario %}
       <div class="cer-nav-section">Administración</div>
       <a href="{% url 'usuario_lista' %}">
         <span class="icono">👥</span> Usuarios
@@ -66,7 +66,7 @@
     <header class="cer-topbar">
       <div class="cer-topbar-titulo">{% block topbar_titulo %}Sistema de Correspondencia{% endblock %}</div>
       <div class="cer-topbar-usuario">
-        <span class="cer-badge-rol rol-{{ user.rol }}">{{ user.get_rol_display }}</span>
+        <span class="cer-badge-rol">{{ user.groups.all|join:", " }}</span>
         <a href="{% url 'perfil' %}" style="color:inherit;text-decoration:none;">
           {{ user.get_full_name|default:user.username }}
         </a>
