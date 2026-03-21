@@ -1,5 +1,6 @@
 from django import forms
 from .models import Documento
+from .validators import validar_archivo_documento
 
 
 class DocumentoForm(forms.ModelForm):
@@ -40,7 +41,7 @@ class DocumentoForm(forms.ModelForm):
             'fecha_documento':       'Fecha del documento original',
             'responsable':           'Responsable asignado',
             'documento_referencia':  'En respuesta a (opcional)',
-            'archivo':               'Archivo digital (PDF, JPG, PNG)',
+            'archivo':               'Archivo digital (PDF, DOCX, XLSX, JPG, PNG)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -52,7 +53,21 @@ class DocumentoForm(forms.ModelForm):
         self.fields['responsable'].required        = False
         self.fields['documento_referencia'].required = False
         self.fields['archivo'].required            = False
+        # Agregrar validador al campo archivo
+        self.fields['archivo'].validators = [validar_archivo_documento]
         # Etiqueta amigable para referencia
         self.fields['documento_referencia'].queryset = Documento.objects.all().order_by('-fecha_radicacion')
         self.fields['documento_referencia'].empty_label = '— No es respuesta a otro documento —'
         self.fields['responsable'].empty_label = '— Sin asignar —'
+    
+    def clean_archivo(self):
+        """
+        Validación personalizada del campo archivo.
+        Se ejecuta automáticamente cuando se valida el formulario.
+        """
+        archivo = self.cleaned_data.get('archivo')
+        if archivo:
+            # La validación de MIME type se hace en validar_archivo_documento()
+            # Este método solo agrega validaciones adicionales si es necesario
+            validar_archivo_documento(archivo)
+        return archivo

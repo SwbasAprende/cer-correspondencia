@@ -1,0 +1,78 @@
+"""
+CAMBIOS DE SEGURIDAD - MEJORA 1: VALIDACIÓN DE ARCHIVOS POR MIME TYPE
+====================================================================
+Fecha: 21 de marzo de 2026
+Estado: ✅ IMPLEMENTADO
+
+DESCRIPCIÓN GENERAL:
+--------------------
+Se reemplazó la validación por extensión de archivo con una validación más robusta
+basada en MIME type real + magic numbers del contenido del archivo.
+
+ESTO PREVIENE:
+- Upload de archivos maliciosos renombrados (ej: malware.exe renombrado a documento.pdf)
+- Execución de código malicioso en el servidor
+- Vulnerabilidades de MIME type confusion
+
+TIPOS PERMITIDOS:
+- PDF (magic: %PDF)
+- DOCX (magic: PK - ZIP con estructura Office)
+- XLSX (magic: PK - ZIP con estructura Office)
+- JPG (magic: \xFF\xD8\xFF)
+- PNG (magic: \x89PNG)
+
+TAMAÑO MÁXIMO: 10 MB
+
+ARCHIVOS MODIFICADOS:
+=====================
+
+1. ✅ correspondencia/validators.py (NUEVO)
+   - Función: validar_archivo_documento()
+   - Valida extensión, tamaño y contenido del archivo
+   - Usa magic numbers para detectar tipo real
+   - Mensajes de error en español
+
+2. ✅ correspondencia/forms.py
+   - Importa el validador
+   - Aplica validar_archivo_documento al campo 'archivo'
+   - Método clean_archivo() opcional para validaciones futuras
+   - Actualizada etiqueta del campo
+
+3. ✅ config/settings.py
+   - Actualizado ALLOWED_DOCUMENT_TYPES (agregados DOCX, XLSX)
+   - Actualizado ALLOWED_DOCUMENT_EXTENSIONS
+   - Comentarios explicativos
+
+4. ✅ correspondencia/tests.py (NUEVO)
+   - Test: PDF válido ✓
+   - Test: PNG válido ✓
+   - Test: JPG válido ✓
+   - Test: Extensión no permitida ✗
+   - Test: Archivo malicioso renombrado ✗
+   - Test: Archivo demasiado grande ✗
+   - Test: Campo opcional ✓
+
+CÓMO EJECUTAR LOS TESTS:
+=======================
+cd /ruta/al/proyecto
+python manage.py test correspondencia.tests.ValidadorArchivoTest -v 2
+
+IMPACTO EN FUNCIONALIDAD EXISTENTE:
+===================================
+✅ COMPATIBLE: La validación es transparente para el usuario
+✅ MEJORA UX: Mensajes de error más claros en español
+⚠️ CAMBIO: Se aceptan nuevos tipos (DOCX, XLSX) - esto es expansión, no regresión
+⚠️ CAMBIO: Se rechazarán archivos maliciosamente renombrados (comportamiento deseado)
+
+SEGURIDAD:
+==========
+- Antes: Solo validaba extensión (vulnerable a spoofing)
+- Ahora: Valida magic numbers + extensión (mucho más seguro)
+- Sin dependencias extra (mimetypes está en stdlib)
+
+NOTAS DE IMPLEMENTACIÓN:
+=======================
+- No requiere cambios en modelos (el field FileField sigue igual)
+- La validación ocurre en el formulario (donde debe ser)
+- El validador es reutilizable en otros formularios si es necesario
+- Los mensajes usan emojis ❌✅ para claridad visual

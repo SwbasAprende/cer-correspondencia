@@ -137,8 +137,18 @@ CER_CONFIG = {
 
 DATA_UPLOAD_MAX_MEMORY_SIZE    = 10485760
 FILE_UPLOAD_MAX_MEMORY_SIZE    = 10485760
-ALLOWED_DOCUMENT_TYPES         = ["application/pdf", "image/jpeg", "image/png"]
-ALLOWED_DOCUMENT_EXTENSIONS    = [".pdf", ".jpg", ".jpeg", ".png"]
+
+# ── Tipos de archivos permitidos en documentos (validación en validators.py) ──
+# Validación por MIME type real + magic numbers, no solo extensión
+ALLOWED_DOCUMENT_TYPES = [
+    "application/pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # DOCX
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # XLSX
+    "image/jpeg",
+    "image/png",
+]
+ALLOWED_DOCUMENT_EXTENSIONS = [".pdf", ".docx", ".xlsx", ".jpg", ".jpeg", ".png"]
+
 DEFAULT_AUTO_FIELD             = "django.db.models.BigAutoField"
 
 # ─── CONFIGURACIÓN DE EMAIL ───────────────────────────────────────────────────
