@@ -164,7 +164,7 @@ DEFAULT_FROM_EMAIL  = f'Sistema CER <{os.getenv("EMAIL_HOST_USER", "")}>'
 # ── Cache y Rate Limiting ─────────────────────────────────────────────────────
 import sys
 
-RATELIMIT_ENABLE = not DEBUG and 'test' not in sys.argv
+RATELIMIT_ENABLE = False  # Desactivar por defecto, se activa solo en producción
 
 SILENCED_SYSTEM_CHECKS = [
     'django_ratelimit.E003',
