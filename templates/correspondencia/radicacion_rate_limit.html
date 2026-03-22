@@ -1,0 +1,52 @@
+{% extends "base/base.html" %}
+
+{% block title %}Límite de Radicaciones Excedido - CER{% endblock %}
+
+{% block content %}
+<div style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="max-width:500px;text-align:center;">
+    <!-- Icono de reloj -->
+    <div style="font-size:80px;margin-bottom:20px;">⏱️</div>
+    
+    <!-- Título -->
+    <h1 style="font-size:28px;margin-bottom:16px;color:#c41e3a;">Límite de Radicaciones Excedido</h1>
+    
+    <!-- Descripción -->
+    <p style="font-size:16px;color:#666;margin-bottom:20px;">
+      Has radicado demasiados documentos en muy poco tiempo. Para proteger la integridad del sistema, se han limitado temporalmente las nuevas radicaciones.
+    </p>
+    
+    <!-- Alert -->
+    <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:16px;margin-bottom:24px;">
+      <p style="margin:0;color:#856404;font-weight:600;">⏸️ Límite: 10 radicaciones por minuto</p>
+      <p style="margin:8px 0 0;color:#856404;font-size:14px;">Por favor, espera antes de radicar el siguiente documento</p>
+    </div>
+    
+    <!-- Información -->
+    <div style="background:#d1ecf1;border-left:4px solid #0c5460;border-radius:4px;padding:16px;margin-bottom:24px;">
+      <p style="margin:0;color:#0c5460;">
+        ℹ️ Este límite ayuda a prevenir errores masivos y protege el sistema de abuso.
+      </p>
+    </div>
+    
+    <!-- Botones -->
+    <div style="display:grid;gap:10px;">
+      <a href="{% url 'documento_nuevo' %}" class="btn-cer btn-primario" style="padding:12px;border-radius:6px;text-decoration:none;display:block;text-align:center;">
+        📝 Intentar Nuevamente
+      </a>
+      <a href="{% url 'documento_lista' %}" class="btn-cer btn-secundario" style="padding:12px;border-radius:6px;text-decoration:none;display:block;text-align:center;">
+        📋 Ver Documentos
+      </a>
+      <a href="{% url 'dashboard' %}" class="btn-cer btn-gris" style="padding:12px;border-radius:6px;text-decoration:none;display:block;text-align:center;background:#6c757d;color:white;border:none;">
+        🏠 Ir al Dashboard
+      </a>
+    </div>
+    
+    <!-- Footer -->
+    <p style="font-size:12px;color:#999;margin-top:24px;">
+      Si tienes problemas o crees que esto es un error, contacta al administrador del sistema.
+    </p>
+  </div>
+</div>
+
+{% endblock %}

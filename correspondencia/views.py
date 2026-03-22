@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.utils import timezone
+from django_ratelimit.decorators import ratelimit
 from .models import Documento, Trazabilidad
 from .forms import DocumentoForm
 from openpyxl import workbook
@@ -53,7 +54,16 @@ def documento_lista(request):
 
 @login_required
 @permission_required('correspondencia.add_documento', raise_exception=False)
+@ratelimit(key='user', rate='10/m', method='POST', block=False)
 def documento_nuevo(request):
+    # Verificar si fue bloqueado por rate limit
+    if request.method == 'POST' and getattr(request, 'limited', False):
+        messages.error(
+            request,
+            '⏱️ Has superado el límite de radicaciones (10 por minuto). Por favor, espera antes de intentar nuevamente.'
+        )
+        return redirect('radicacion_rate_limit_exceeded')
+    
     # Permiso verificado por decorador, si llegamos aquí es porque tiene permiso
     if request.method == 'POST':
         form = DocumentoForm(request.POST, request.FILES)

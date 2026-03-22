@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_ratelimit",
     "usuarios",
     "correspondencia",
     "plantillas",
@@ -159,3 +160,23 @@ EMAIL_USE_TLS       = True
 EMAIL_HOST_USER     = os.getenv('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = f'Sistema CER <{os.getenv("EMAIL_HOST_USER", "")}>'
+
+# ── Cache y Rate Limiting ─────────────────────────────────────────────────────
+import sys
+
+RATELIMIT_ENABLE = not DEBUG and 'test' not in sys.argv
+
+SILENCED_SYSTEM_CHECKS = [
+    'django_ratelimit.E003',
+    'django_ratelimit.W001',
+]
+
+if not DEBUG:
+    REDIS_URL = config('REDIS_URL', default='')
+    if REDIS_URL:
+        CACHES = {
+            "default": {
+                "BACKEND": "django.core.cache.backends.redis.RedisCache",
+                "LOCATION": REDIS_URL,
+            }
+        }
