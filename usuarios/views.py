@@ -1,9 +1,14 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils import timezone
+from django.core.cache import cache
 from correspondencia.models import Documento
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
+
+
+DASHBOARD_CACHE_KEY = 'dashboard_estadisticas'
+DASHBOARD_CACHE_TIMEOUT = 300  # 5 minutos
 
 
 def sin_permisos(request):
@@ -15,6 +20,10 @@ def sin_permisos(request):
 
 @login_required
 def dashboard(request):
+    cached = cache.get(DASHBOARD_CACHE_KEY)
+    if cached:
+        return render(request, 'base/dashboard.html', cached)
+
     hoy = timezone.now().date()
     total      = Documento.objects.count()
     en_tramite = Documento.objects.filter(estado='en_tramite').count()
@@ -27,7 +36,7 @@ def dashboard(request):
         prioridad='urgente'
     ).exclude(estado__in=['respondido', 'archivado']).order_by('fecha_limite')[:5]
 
-    return render(request, 'base/dashboard.html', {
+    contexto = {
         'total':      total,
         'en_tramite': en_tramite,
         'recibidos':  recibidos,
@@ -35,7 +44,10 @@ def dashboard(request):
         'recientes':  recientes,
         'urgentes':   urgentes,
         'hoy':        hoy,
-    })
+    }
+
+    cache.set(DASHBOARD_CACHE_KEY, contexto, DASHBOARD_CACHE_TIMEOUT)
+    return render(request, 'base/dashboard.html', contexto)
 
 
 @login_required

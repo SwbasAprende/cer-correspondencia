@@ -171,6 +171,14 @@ SILENCED_SYSTEM_CHECKS = [
     'django_ratelimit.W001',
 ]
 
+# Soporte de caché con fallback: utiliza Redis si está configurado, sino locmem
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "cer-cache",
+    }
+}
+
 if not DEBUG:
     REDIS_URL = config('REDIS_URL', default='')
     if REDIS_URL:

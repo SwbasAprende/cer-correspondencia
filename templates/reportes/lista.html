@@ -123,6 +123,30 @@
        class="btn-cer btn-dorado">📥 Exportar Excel</a>
   </div>
 
+  <div style="padding:10px 16px;font-size:14px;color:#444;">Página {{ pagina_actual }} de {{ num_paginas }} — Total {{ total }} documento{% if total != 1 %}s{% endif %}</div>
+
+  {% if paginator.num_pages > 1 %}
+  <div style="padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+    {% if page_obj.has_previous %}
+      <a class="btn-cer btn-secundario" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}">« Anterior</a>
+    {% endif %}
+    {% for num in paginator.page_range %}
+      {% if num == page_obj.number %}
+        <span class="btn-cer btn-primario" style="pointer-events:none">{{ num }}</span>
+      {% elif num <= 2 or num > paginator.num_pages-2 or num|add:'-page_obj.number'|abs < 3 %}
+        <a class="btn-cer btn-secundario" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+      {% elif num == 3 and page_obj.number > 4 %}
+        <span>…</span>
+      {% elif num == paginator.num_pages-2 and page_obj.number < paginator.num_pages-3 %}
+        <span>…</span>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <a class="btn-cer btn-secundario" href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}">Siguiente »</a>
+    {% endif %}
+  </div>
+  {% endif %}
+
   {% if docs %}
   <div style="overflow-x:auto;">
     <table class="cer-tabla">

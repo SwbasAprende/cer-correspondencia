@@ -76,11 +76,11 @@ class Documento(models.Model):
     )
 
     # Clasificación
-    tipo      = models.CharField(max_length=2,  choices=Tipo.choices,      verbose_name='Tipo de documento')
-    flujo     = models.CharField(max_length=10, choices=Flujo.choices,     verbose_name='Flujo')
-    prioridad = models.CharField(max_length=15, choices=Prioridad.choices, default=Prioridad.NORMAL, verbose_name='Prioridad')
-    estado    = models.CharField(max_length=15, choices=Estado.choices,    default=Estado.RECIBIDO,  verbose_name='Estado')
-    actor     = models.CharField(max_length=20, choices=Actor.choices,     default=Actor.OTRO,       verbose_name='Actor del ecosistema')
+    tipo      = models.CharField(max_length=2,  choices=Tipo.choices,      db_index=True, verbose_name='Tipo de documento')
+    flujo     = models.CharField(max_length=10, choices=Flujo.choices,     db_index=True, verbose_name='Flujo')
+    prioridad = models.CharField(max_length=15, choices=Prioridad.choices, default=Prioridad.NORMAL, db_index=True, verbose_name='Prioridad')
+    estado    = models.CharField(max_length=15, choices=Estado.choices,    default=Estado.RECIBIDO, db_index=True, verbose_name='Estado')
+    actor     = models.CharField(max_length=20, choices=Actor.choices,     default=Actor.OTRO,       db_index=True, verbose_name='Actor del ecosistema')
 
     # Partes
     remitente   = models.CharField(max_length=200, verbose_name='Remitente')
@@ -104,7 +104,7 @@ class Documento(models.Model):
     fecha_radicacion = models.DateField(default=timezone.now, verbose_name='Fecha de radicación')
     hora_radicacion = models.TimeField(default=timezone.now, verbose_name='Hora de radicación')
     fecha_documento  = models.DateField(blank=True, null=True, verbose_name='Fecha del documento')
-    fecha_limite     = models.DateField(blank=True, null=True, verbose_name='Fecha límite de respuesta')
+    fecha_limite     = models.DateField(blank=True, null=True, db_index=True, verbose_name='Fecha límite de respuesta')
     fecha_respuesta  = models.DateField(blank=True, null=True, verbose_name='Fecha de respuesta')
 
     # Responsable asignado
@@ -145,6 +145,10 @@ class Documento(models.Model):
             models.Index(fields=['fecha_radicacion']),
             models.Index(fields=['estado']),
             models.Index(fields=['remitente']),
+            models.Index(fields=['tipo']),
+            models.Index(fields=['flujo']),
+            models.Index(fields=['prioridad']),
+            models.Index(fields=['fecha_limite']),
         ]
 
     def __str__(self):

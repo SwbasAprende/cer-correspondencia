@@ -4,6 +4,8 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
+from django.core.cache import cache
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from .models import Documento, Trazabilidad
 from .forms import DocumentoForm
 from openpyxl import workbook
@@ -14,7 +16,7 @@ from django.template.loader import render_to_string
 
 @login_required
 def documento_lista(request):
-    docs = Documento.objects.all().order_by('-fecha_radicacion')
+    docs = Documento.objects.select_related('responsable', 'radicado_por').order_by('-fecha_radicacion')
 
     # Filtros
     estado    = request.GET.get('estado', '')
@@ -39,12 +41,27 @@ def documento_lista(request):
             destinatario__icontains=buscar
         )
 
+    total = docs.count()
+    paginator = Paginator(docs, 20)
+    page = request.GET.get('page', 1)
+    try:
+        documentos_page = paginator.page(page)
+    except PageNotAnInteger:
+        documentos_page = paginator.page(1)
+    except EmptyPage:
+        documentos_page = paginator.page(paginator.num_pages)
+
     contexto = {
-        'documentos':    docs,
+        'documentos':    documentos_page,
+        'page_obj':      documentos_page,
+        'paginator':     paginator,
+        'pagina_actual': documentos_page.number,
+        'num_paginas':   paginator.num_pages,
+        'total':         total,
         'estado_filtro': estado,
         'tipo_filtro':   tipo,
+        'prioridad':     prioridad,
         'buscar':        buscar,
-        'total':         docs.count(),
         'tipos':         Documento.Tipo.choices,
         'estados':       Documento.Estado.choices,
         'prioridades':   Documento.Prioridad.choices,
@@ -81,6 +98,7 @@ def documento_nuevo(request):
                 usuario      = request.user,
                 nota         = 'Documento radicado en el sistema.'
             )
+            cache.delete('dashboard_estadisticas')
             notificar_nuevo_documento(doc)
             messages.success(request, f'Documento radicado exitosamente con número {doc.radicado}')
             return redirect('documento_detalle', pk=doc.pk)
@@ -92,7 +110,10 @@ def documento_nuevo(request):
 
 @login_required
 def documento_detalle(request, pk):
-    doc          = get_object_or_404(Documento, pk=pk)
+    doc = get_object_or_404(
+        Documento.objects.select_related('responsable', 'radicado_por').prefetch_related('trazabilidad'),
+        pk=pk
+    )
     trazabilidad = doc.trazabilidad.all().order_by('-fecha')
 
     # Verificar acceso a confidenciales
@@ -116,6 +137,7 @@ def documento_detalle(request, pk):
             if nuevo_estado == 'respondido':
                 doc.fecha_respuesta = timezone.now().date()
             doc.save()
+            cache.delete('dashboard_estadisticas')
             notificar_cambio_estado(doc, doc.estado, nuevo_estado, request.user, nota)
             messages.success(request, f'Estado actualizado a: {doc.get_estado_display()}')
             return redirect('documento_detalle', pk=doc.pk)
@@ -141,6 +163,7 @@ def documento_editar(request, pk):
         form = DocumentoForm(request.POST, request.FILES, instance=doc)
         if form.is_valid():
             form.save()
+            cache.delete('dashboard_estadisticas')
             messages.success(request, 'Documento actualizado correctamente.')
             return redirect('documento_detalle', pk=doc.pk)
     else:

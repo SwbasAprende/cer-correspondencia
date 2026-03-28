@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.utils import timezone
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from correspondencia.models import Documento, Trazabilidad
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -27,6 +28,17 @@ def reporte_lista(request):
     entrada      = docs.filter(flujo='entrada').count()
     salida       = docs.filter(flujo='salida').count()
 
+    # Paginación
+    docs_ordenados = docs.order_by('-fecha_radicacion').select_related('responsable', 'radicado_por')
+    paginator = Paginator(docs_ordenados, 20)
+    page = request.GET.get('page', 1)
+    try:
+        docs_page = paginator.page(page)
+    except PageNotAnInteger:
+        docs_page = paginator.page(1)
+    except EmptyPage:
+        docs_page = paginator.page(paginator.num_pages)
+
     # Años disponibles
     anios = list(range(2024, hoy.year + 2))
     meses = [
@@ -36,19 +48,23 @@ def reporte_lista(request):
     ]
 
     return render(request, 'reportes/lista.html', {
-        'docs':         docs.order_by('-fecha_radicacion'),
-        'total':        total,
-        'por_estado':   por_estado,
-        'por_tipo':     por_tipo,
-        'por_prioridad':por_prioridad,
-        'vencidos':     vencidos,
-        'entrada':      entrada,
-        'salida':       salida,
-        'anio':         anio,
-        'mes':          mes,
-        'anios':        anios,
-        'meses':        meses,
-        'hoy':          hoy,
+        'docs':          docs_page,
+        'page_obj':      docs_page,
+        'paginator':     paginator,
+        'pagina_actual': docs_page.number,
+        'num_paginas':   paginator.num_pages,
+        'total':         total,
+        'por_estado':    por_estado,
+        'por_tipo':      por_tipo,
+        'por_prioridad': por_prioridad,
+        'vencidos':      vencidos,
+        'entrada':       entrada,
+        'salida':        salida,
+        'anio':          anio,
+        'mes':           mes,
+        'anios':         anios,
+        'meses':         meses,
+        'hoy':           hoy,
         'estados': Documento.Estado.choices,
     })
 
