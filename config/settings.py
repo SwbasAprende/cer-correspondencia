@@ -104,7 +104,10 @@ STATIC_URL       = "/static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT      = BASE_DIR / "staticfiles"
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
+# Durante tests usar storage simple sin manifest
+import sys
+if 'test' in sys.argv:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 MEDIA_URL  = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
@@ -121,7 +124,19 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD           = True
     X_FRAME_OPTIONS               = 'DENY'
+# ── Políticas de seguridad adicionales
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+PERMISSIONS_POLICY = "geolocation=(), microphone=(), camera=()"
 
+SESSION_COOKIE_AGE = 28800  # 8 horas
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
 # ── Configuración institucional CER ─────────────────────────────────────────
 CER_CONFIG = {
     "nombre": "Centro de Estudios Regionales",

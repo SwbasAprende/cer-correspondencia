@@ -96,11 +96,11 @@
     {% for num in paginator.page_range %}
       {% if num == page_obj.number %}
         <span class="btn-cer btn-primario" style="pointer-events:none">{{ num }}</span>
-      {% elif num <= 2 or num > paginator.num_pages-2 or num|add:'-page_obj.number'|abs < 3 %}
+      {% elif num <= 2 or num >= paginator.num_pages %}
         <a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ num }}" class="btn-cer btn-secundario">{{ num }}</a>
       {% elif num == 3 and page_obj.number > 4 %}
         <span>…</span>
-      {% elif num == paginator.num_pages-2 and page_obj.number < paginator.num_pages-3 %}
+      {% elif num == paginator.num_pages|add:"-2" and page_obj.number < paginator.num_pages %}
         <span>…</span>
       {% endif %}
     {% endfor %}
@@ -127,12 +127,12 @@
       </thead>
       <tbody>
         {% for doc in documentos %}
-        <tr style="border-bottom:1px solid #f0f0f0;{% if doc.esta_vencido %}background:#fff8f8;{% elif forloop.even %}background:#fafafa;{% endif %}">
+        <tr style="border-bottom:1px solid #f0f0f0;{% if doc.esta_vencido %}background-color:#fff8f8;{% elif forloop.even %}background-color:#fafafa;{% endif %}">
 
           {# Radicado #}
           <td style="padding:12px 14px;">
             <a href="{% url 'documento_detalle' doc.pk %}"
-               style="background:#e8f5e9;color:#1a3a2a;padding:4px 10px;border-radius:4px;font-weight:600;font-size:13px;text-decoration:none;font-family:monospace;white-space:nowrap;">
+              style="background:#e8f5e9;color:#1a3a2a;padding:4px 10px;border-radius:4px;font-weight:600;font-size:13px;text-decoration:none;font-family:monospace;white-space:nowrap;">
               {{ doc.radicado }}
             </a>
             {% if doc.esta_vencido %}
@@ -190,7 +190,7 @@
           {# Acción #}
           <td style="padding:12px 14px;text-align:center;">
             <a href="{% url 'documento_detalle' doc.pk %}"
-               style="background:#1a3a2a;color:#fff;padding:5px 12px;border-radius:5px;font-size:12px;text-decoration:none;">
+              style="background:#1a3a2a;color:#fff;padding:5px 12px;border-radius:5px;font-size:12px;text-decoration:none;">
               Ver
             </a>
           </td>

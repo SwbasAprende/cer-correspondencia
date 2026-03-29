@@ -8,6 +8,8 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 from django.db import connections
 from django.db.utils import OperationalError
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,6 +37,11 @@ class Command(BaseCommand):
             ('ALLOWED_HOSTS no contiene "*"', self._check_allowed_hosts),
             ('Conexión a BD funciona', self._check_database_connection),
             ('EMAIL configurado', self._check_email),
+            ('Grupos base definidos', self._check_grupos_base),
+            ('Existe al menos un superusuario', self._check_superuser_exists),
+            ('Configuración de sesiones', self._check_session_config),
+            ('Sentry configurado', self._check_sentry_config),
+            ('HTTPS forzado', self._check_https_forzado),
             ('SECURE_SSL_REDIRECT está activo', self._check_ssl_redirect),
             ('CSRF_COOKIE_SECURE está activo', self._check_csrf_secure),
             ('SESSION_COOKIE_SECURE está activo', self._check_session_secure),
@@ -204,3 +211,47 @@ class Command(BaseCommand):
             return False, 'SECURE_HSTS_SECONDS debe ser > 0 en producción'
         
         return True, f'HSTS habilitado por {hsts_seconds} segundos'
+
+    def _check_grupos_base(self):
+        """Verifica que existan los grupos de rol básicos"""
+        target = {'Administrador', 'Radicador', 'Consultor', 'Solo lectura'}
+        existing = set(Group.objects.filter(name__in=target).values_list('name', flat=True))
+        missing = target - existing
+        if missing:
+            return False, f'Faltan grupos: {", ".join(sorted(missing))}'
+        return True, f'Grupos válidos: {", ".join(sorted(existing))}'
+
+    def _check_superuser_exists(self):
+        """Verifica que exista al menos un superusuario"""
+        User = get_user_model()
+        if not User.objects.filter(is_superuser=True, is_active=True).exists():
+            return False, 'No existe un superusuario activo'
+        return True, 'Existe al menos un superusuario activo'
+
+    def _check_session_config(self):
+        """Verifica configuración de sesiones"""
+        if getattr(settings, 'SESSION_COOKIE_AGE', None) != 28800:
+            return False, f'SESSION_COOKIE_AGE debe ser 28800, actual {getattr(settings, "SESSION_COOKIE_AGE", None)}'
+        if not getattr(settings, 'SESSION_EXPIRE_AT_BROWSER_CLOSE', False):
+            return False, 'SESSION_EXPIRE_AT_BROWSER_CLOSE debe estar en True'
+        return True, 'Sesiones configuradas correctamente'
+
+    def _check_sentry_config(self):
+        """Verifica que Sentry esté configurado"""
+        dsn = getattr(settings, 'SENTRY_DSN', '')
+        if not dsn:
+            return True, 'SENTRY_DSN no configurado (warning, se recomienda establecerlo).'
+        return True, 'Sentry configurado'
+
+    def _check_https_forzado(self):
+        """Verifica que HTTPS esté forzado"""
+        if settings.DEBUG:
+            return True, 'Deshabilitado en DEBUG'
+        if not getattr(settings, 'SECURE_SSL_REDIRECT', False):
+            return False, 'SECURE_SSL_REDIRECT debe ser True en producción'
+        if not getattr(settings, 'CSRF_COOKIE_SECURE', False):
+            return False, 'CSRF_COOKIE_SECURE debe ser True en producción'
+        if not getattr(settings, 'SESSION_COOKIE_SECURE', False):
+            return False, 'SESSION_COOKIE_SECURE debe ser True en producción'
+        return True, 'HTTPS forzado correctamente'
+

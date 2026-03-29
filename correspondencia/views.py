@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.db.models import Q
+from django.core.exceptions import PermissionDenied
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from django.core.cache import cache
@@ -15,6 +16,44 @@ from django.http import HttpResponse
 from django.utils import timezone
 from weasyprint import HTML
 from django.template.loader import render_to_string
+
+def _get_documento_seguro(request, pk, require_change=False):
+    """Retorna un documento filtrado por permisos y evita IDOR."""
+    queryset = Documento.objects.select_related('responsable', 'radicado_por').prefetch_related('trazabilidad')
+
+    if request.user.is_superuser:
+        doc = get_object_or_404(queryset, pk=pk)
+    elif request.user.has_perm('correspondencia.view_documento'):
+        doc = get_object_or_404(queryset, pk=pk)
+    else:
+        doc = get_object_or_404(
+            queryset.filter(
+                Q(responsable=request.user) |
+                Q(radicado_por=request.user)
+            ),
+            pk=pk
+        )
+
+    # Verificación de confidenciales
+    if doc.prioridad == Documento.Prioridad.CONFIDENCIAL:
+        puede_ver = (
+            request.user.has_perm('correspondencia.view_confidenciales') or
+            getattr(request.user, 'puede_ver_confidenciales', False)
+        )
+        if not puede_ver:
+            raise PermissionDenied('No tiene permisos para acceder a documentos confidenciales.')
+
+    if require_change:
+        if not (
+            request.user.is_superuser or
+            request.user.has_perm('correspondencia.change_documento') or
+            doc.responsable_id == request.user.id or
+            doc.radicado_por_id == request.user.id
+        ):
+            raise PermissionDenied('No tiene permisos para editar este documento.')
+
+    return doc
+
 
 @login_required
 def documento_lista(request):
@@ -113,10 +152,7 @@ def documento_nuevo(request):
 
 @login_required
 def documento_detalle(request, pk):
-    doc = get_object_or_404(
-        Documento.objects.select_related('responsable', 'radicado_por').prefetch_related('trazabilidad'),
-        pk=pk
-    )
+    doc = _get_documento_seguro(request, pk)
     trazabilidad = doc.trazabilidad.all().order_by('-fecha')
 
     # Registrar acceso para auditoría (Ley 594)
@@ -163,7 +199,7 @@ def documento_detalle(request, pk):
 @login_required
 @permission_required('correspondencia.change_documento', raise_exception=False)
 def documento_editar(request, pk):
-    doc = get_object_or_404(Documento, pk=pk)
+    doc = _get_documento_seguro(request, pk, require_change=True)
 
     if request.method == 'POST':
         form = DocumentoForm(request.POST, request.FILES, instance=doc)
@@ -220,12 +256,9 @@ def documento_editar(request, pk):
 @login_required
 def documento_pdf(request, pk):
     """Genera el PDF completo del documento con membrete institucional."""
-    doc = get_object_or_404(Documento, pk=pk)
+    doc = _get_documento_seguro(request, pk)
 
-    # Verificar acceso a documentos confidenciales
-    if doc.prioridad == 'confidencial' and not request.user.has_perm('correspondencia.view_confidenciales'):
-        messages.error(request, 'No tienes permiso para ver documentos confidenciales.')
-        return redirect('documento_lista')
+    # Guardado en _get_documento_seguro para confidencial y acceso
 
     # Registrar acceso para auditoría (Ley 594)
     registrar_acceso(request, doc, AccesoDocumento.Accion.IMPRIMIR)
@@ -252,7 +285,7 @@ def documento_pdf(request, pk):
 @login_required
 def documento_pdf_sticker(request, pk):
     """Genera el PDF del sticker de radicado (tamaño tarjeta)."""
-    doc = get_object_or_404(Documento, pk=pk)
+    doc = _get_documento_seguro(request, pk)
     fecha_rad, hora_rad = doc.fecha_hora_radicacion
 
     contexto = {
