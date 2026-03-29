@@ -2,6 +2,7 @@
 Configuración del Sistema de Correspondencia Institucional - CER
 """
 import os
+import logging
 from dotenv import load_dotenv
 load_dotenv()
 from pathlib import Path
@@ -163,13 +164,18 @@ ALLOWED_DOCUMENT_EXTENSIONS = [".pdf", ".docx", ".xlsx", ".jpg", ".jpeg", ".png"
 DEFAULT_AUTO_FIELD             = "django.db.models.BigAutoField"
 
 # ─── CONFIGURACIÓN DE EMAIL ───────────────────────────────────────────────────
-EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
 EMAIL_HOST          = 'smtp.gmail.com'
 EMAIL_PORT          = 587
 EMAIL_USE_TLS       = True
-EMAIL_HOST_USER     = os.getenv('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
-DEFAULT_FROM_EMAIL  = f'Sistema CER <{os.getenv("EMAIL_HOST_USER", "")}>'
+EMAIL_HOST_USER     = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_TIMEOUT       = 10
+DEFAULT_FROM_EMAIL  = f'Sistema CER <{config("EMAIL_HOST_USER", default="")}>'
 
 # ── Cache y Rate Limiting ─────────────────────────────────────────────────────
 import sys
@@ -194,7 +200,11 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+            'format': '[%(asctime)s] %(levelname)s [%(pathname)s:%(lineno)d] %(funcName)s() - %(message)s',
+            'datefmt': '%d/%b/%Y %H:%M:%S',
+        },
+        'simple': {
+            'format': '%(levelname)s - %(message)s'
         },
     },
     'handlers': {
@@ -205,22 +215,32 @@ LOGGING = {
     },
     'root': {
         'handlers': ['console'],
-        'level': 'WARNING',
+        'level': 'INFO' if DEBUG else 'WARNING',
     },
     'loggers': {
         'django': {
             'handlers': ['console'],
-            'level': 'WARNING',
+            'level': 'INFO' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['console'],
+            'level': 'INFO' if DEBUG else 'WARNING',
             'propagate': False,
         },
         'correspondencia': {
             'handlers': ['console'],
-            'level': 'WARNING',
+            'level': 'INFO' if DEBUG else 'WARNING',
             'propagate': False,
         },
         'reportes': {
             'handlers': ['console'],
-            'level': 'WARNING',
+            'level': 'INFO' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+        'usuarios': {
+            'handlers': ['console'],
+            'level': 'INFO' if DEBUG else 'WARNING',
             'propagate': False,
         },
     },
@@ -235,3 +255,26 @@ if not DEBUG:
                 "LOCATION": REDIS_URL,
             }
         }
+
+# ── Sentry para monitoreo de errores ──────────────────────────────────────────
+SENTRY_DSN = config('SENTRY_DSN', default='')
+
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[
+            DjangoIntegration(),
+            LoggingIntegration(
+                level=logging.INFO,
+                event_level=logging.WARNING
+            ),
+        ],
+        environment='production' if not DEBUG else 'development',
+        traces_sample_rate=0.1,
+        send_default_pii=False,
+        attach_stacktrace=True,
+    )

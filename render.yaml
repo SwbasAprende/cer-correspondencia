@@ -9,7 +9,7 @@ services:
     name: cer-correspondencia
     plan: free
     runtime: python
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py verificar_produccion --fail-on-error"
     startCommand: "python manage.py migrate && gunicorn config.wsgi:application"
     envVars:
       - key: SECRET_KEY
@@ -24,3 +24,11 @@ services:
           property: internalConnectionString
       - key: PYTHON_VERSION
         value: "3.12.0"
+      - key: REDIS_URL
+        value: ""
+      - key: SENTRY_DSN
+        value: ""
+      - key: EMAIL_HOST_USER
+        value: ""
+      - key: EMAIL_HOST_PASSWORD
+        value: ""

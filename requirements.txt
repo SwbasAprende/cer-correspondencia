@@ -27,3 +27,4 @@ webencodings==0.5.1
 whitenoise==6.11.0
 zopfli==0.4.1
 django-ratelimit==4.1.0
+sentry-sdk==2.19.2
