@@ -67,7 +67,7 @@ DATABASE_URL = config('DATABASE_URL', default='')
 
 if DATABASE_URL:
     db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
-    db_config['OPTIONS'] = {'sslmode': 'disable'}
+    db_config['OPTIONS'] = {'sslmode': 'require'}
     DATABASES = {'default': db_config}
 else:
     DATABASES = {
