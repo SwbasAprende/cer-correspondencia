@@ -66,13 +66,9 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASE_URL = config('DATABASE_URL', default='')
 
 if DATABASE_URL:
-    DATABASES = {
-        'default': dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True
-        )
-    }
+    db_config = dj_database_url.parse(DATABASE_URL, conn_max_age=600)
+    db_config['OPTIONS'] = {'sslmode': 'disable'}
+    DATABASES = {'default': db_config}
 else:
     DATABASES = {
         'default': {
