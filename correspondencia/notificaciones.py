@@ -2,9 +2,12 @@
 Notificaciones por email del Sistema de Correspondencia CER
 Se envían automáticamente en eventos clave del sistema
 """
+import logging
 from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 
 def _enviar(asunto, mensaje, destinatarios):
@@ -20,7 +23,7 @@ def _enviar(asunto, mensaje, destinatarios):
             fail_silently = False,
         )
     except Exception as e:
-        print(f'[CER Email Error] {e}')
+        logger.exception('[CER Email Error] No se pudo enviar el mensaje')
 
 
 def notificar_nuevo_documento(documento):

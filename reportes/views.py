@@ -70,6 +70,7 @@ def reporte_lista(request):
 
 
 @login_required
+@login_required
 def exportar_excel(request):
     hoy  = timezone.now().date()
     anio = int(request.GET.get('anio', hoy.year))

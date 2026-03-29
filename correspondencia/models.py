@@ -140,6 +140,9 @@ class Documento(models.Model):
         verbose_name = 'Documento'
         verbose_name_plural = 'Documentos'
         ordering = ['-fecha_radicacion', '-consecutivo_anio']
+        permissions = [
+            ('view_confidenciales', 'Puede ver documentos confidenciales'),
+        ]
         indexes = [
             models.Index(fields=['radicado']),
             models.Index(fields=['fecha_radicacion']),

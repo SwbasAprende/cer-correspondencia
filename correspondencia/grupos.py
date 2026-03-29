@@ -2,11 +2,14 @@
 Sistema de grupos y permisos para el CER
 Define los 4 grupos con sus permisos asociados
 """
+import logging
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from correspondencia.models import Documento, Trazabilidad
 from plantillas.models import PlantillaDocumento, DocumentoGenerado
 from usuarios.models import Usuario
+
+logger = logging.getLogger(__name__)
 
 
 def crear_grupos_sistema():
@@ -39,8 +42,8 @@ def crear_grupos_sistema():
     # ────────────────────────────────────────────────────────────────────────────
     grupo_admin, creado = Group.objects.get_or_create(name='Administrador')
     if creado:
-        print('✅ Grupo "Administrador" creado')
-    
+        logger.warning('✅ Grupo "Administrador" creado')
+
     permisos_admin = Permission.objects.filter(
         content_type__in=[ct_documento, ct_usuario, ct_plantilla, ct_doc_generado]
     )
@@ -51,8 +54,8 @@ def crear_grupos_sistema():
     # ────────────────────────────────────────────────────────────────────────────
     grupo_radicador, creado = Group.objects.get_or_create(name='Radicador')
     if creado:
-        print('✅ Grupo "Radicador" creado')
-    
+        logger.warning('✅ Grupo "Radicador" creado')
+
     permisos_radicador = Permission.objects.filter(
         codename__in=[
             'add_documento',           # Radicar (crear documento)
@@ -70,8 +73,8 @@ def crear_grupos_sistema():
     # ────────────────────────────────────────────────────────────────────────────
     grupo_consultor, creado = Group.objects.get_or_create(name='Consultor')
     if creado:
-        print('✅ Grupo "Consultor" creado')
-    
+        logger.warning('✅ Grupo "Consultor" creado')
+
     permisos_consultor = Permission.objects.filter(
         codename__in=[
             'view_documento',         # Ver documentos
@@ -85,8 +88,8 @@ def crear_grupos_sistema():
     # ────────────────────────────────────────────────────────────────────────────
     grupo_lectura, creado = Group.objects.get_or_create(name='Solo lectura')
     if creado:
-        print('✅ Grupo "Solo lectura" creado')
-    
+        logger.warning('✅ Grupo "Solo lectura" creado')
+
     permisos_lectura = Permission.objects.filter(
         codename__in=[
             'view_documento',         # Solo ver
@@ -94,7 +97,7 @@ def crear_grupos_sistema():
     )
     grupo_lectura.permissions.set(permisos_lectura)
     
-    print("""
+    logger.warning("""
 ════════════════════════════════════════════════════════════════════════════════
 ✅ SISTEMA DE GRUPOS CREADO EXITOSAMENTE
 

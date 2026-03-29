@@ -2,6 +2,7 @@ from .notificaciones import notificar_nuevo_documento, notificar_cambio_estado
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
+from django.db.models import Q
 from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from django.core.cache import cache
@@ -18,6 +19,10 @@ from django.template.loader import render_to_string
 def documento_lista(request):
     docs = Documento.objects.select_related('responsable', 'radicado_por').order_by('-fecha_radicacion')
 
+    # Control de acceso a documentos confidenciales
+    if not request.user.has_perm('correspondencia.view_confidenciales'):
+        docs = docs.exclude(prioridad=Documento.Prioridad.CONFIDENCIAL)
+
     # Filtros
     estado    = request.GET.get('estado', '')
     tipo      = request.GET.get('tipo', '')
@@ -32,14 +37,11 @@ def documento_lista(request):
         docs = docs.filter(prioridad=prioridad)
     if buscar:
         docs = docs.filter(
-            radicado__icontains=buscar
-        ) | docs.filter(
-            asunto__icontains=buscar
-        ) | docs.filter(
-            remitente__icontains=buscar
-        ) | docs.filter(
-            destinatario__icontains=buscar
-        )
+            Q(radicado__icontains=buscar) |
+            Q(asunto__icontains=buscar) |
+            Q(remitente__icontains=buscar) |
+            Q(destinatario__icontains=buscar)
+        ).distinct()
 
     total = docs.count()
     paginator = Paginator(docs, 20)
@@ -219,6 +221,7 @@ def documento_pdf_sticker(request, pk):
     response['Content-Disposition'] = f'inline; filename="sticker-{doc.radicado}.pdf"'
     return response
 
+@login_required
 def reporte_correspondencia_excel(request):
     wb = Workbook()
     ws = wb.active
@@ -239,7 +242,7 @@ def reporte_correspondencia_excel(request):
         "Radicado por"
     ])
 
-    queryset = Correspondencia.objects.all()
+    queryset = Documento.objects.all()
 
     # 🔹 Reutilizar los filtros existentes
     tipo = request.GET.get("tipo")
@@ -266,7 +269,7 @@ def reporte_correspondencia_excel(request):
 
     for c in queryset:
         ws.append([
-            c.numero_radicado,
+            c.radicado,
             c.fecha_radicacion.strftime("%d/%m/%Y"),
             c.hora_radicacion.strftime("%H:%M:%S"),
             c.get_tipo_display(),

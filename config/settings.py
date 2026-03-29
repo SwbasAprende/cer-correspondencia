@@ -13,7 +13,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ── Seguridad ────────────────────────────────────────────────────────────────
 SECRET_KEY = config('SECRET_KEY')
 DEBUG      = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=Csv())
+
+if DEBUG:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+else:
+    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=Csv())
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -105,11 +109,17 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 # ── Seguridad en producción ──────────────────────────────────────────────────
 if not DEBUG:
-    SECURE_SSL_REDIRECT        = True
-    SESSION_COOKIE_SECURE      = True
-    CSRF_COOKIE_SECURE         = True
-    SECURE_BROWSER_XSS_FILTER  = True
+    SECURE_SSL_REDIRECT         = True
+    SESSION_COOKIE_SECURE       = True
+    CSRF_COOKIE_SECURE          = True
+    SECURE_BROWSER_XSS_FILTER   = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+
+    # HSTS para forzar HTTPS
+    SECURE_HSTS_SECONDS           = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD           = True
+    X_FRAME_OPTIONS               = 'DENY'
 
 # ── Configuración institucional CER ─────────────────────────────────────────
 CER_CONFIG = {
@@ -177,6 +187,43 @@ CACHES = {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
         "LOCATION": "cer-cache",
     }
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'correspondencia': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        'reportes': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
 }
 
 if not DEBUG:
