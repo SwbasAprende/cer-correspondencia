@@ -7,8 +7,9 @@ from django.utils import timezone
 from django_ratelimit.decorators import ratelimit
 from django.core.cache import cache
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from .models import Documento, Trazabilidad
+from .models import Documento, Trazabilidad, AccesoDocumento, AuditoriaDocumento
 from .forms import DocumentoForm
+from .utils import registrar_acceso
 from openpyxl import workbook
 from django.http import HttpResponse
 from django.utils import timezone
@@ -118,6 +119,9 @@ def documento_detalle(request, pk):
     )
     trazabilidad = doc.trazabilidad.all().order_by('-fecha')
 
+    # Registrar acceso para auditoría (Ley 594)
+    registrar_acceso(request, doc, AccesoDocumento.Accion.VER)
+
     # Verificar acceso a confidenciales
     if doc.prioridad == 'confidencial' and not request.user.has_perm('correspondencia.view_confidenciales'):
         messages.error(request, 'No tienes permiso para ver documentos confidenciales.')
@@ -164,7 +168,47 @@ def documento_editar(request, pk):
     if request.method == 'POST':
         form = DocumentoForm(request.POST, request.FILES, instance=doc)
         if form.is_valid():
+            # Guardar valores anteriores para auditoría
+            valores_anteriores = {}
+            campos_auditar = [
+                'tipo', 'flujo', 'prioridad', 'actor', 'remitente', 'destinatario',
+                'entidad', 'asunto', 'descripcion', 'fecha_documento', 'responsable',
+                'documento_referencia'
+            ]
+            
+            for campo in campos_auditar:
+                valor_actual = getattr(doc, campo)
+                if valor_actual is not None:
+                    valores_anteriores[campo] = str(valor_actual)
+                else:
+                    valores_anteriores[campo] = ''
+
+            # Guardar cambios
             form.save()
+            
+            # Registrar auditoría de cambios (Ley 594)
+            ip_address = None
+            if hasattr(request, 'META'):
+                x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+                if x_forwarded_for:
+                    ip_address = x_forwarded_for.split(',')[0].strip()
+                else:
+                    ip_address = request.META.get('REMOTE_ADDR')
+            
+            for campo in campos_auditar:
+                valor_anterior = valores_anteriores.get(campo, '')
+                valor_nuevo = str(getattr(doc, campo) or '')
+                
+                if valor_anterior != valor_nuevo:
+                    AuditoriaDocumento.objects.create(
+                        documento=doc,
+                        usuario=request.user,
+                        campo_modificado=campo,
+                        valor_anterior=valor_anterior,
+                        valor_nuevo=valor_nuevo,
+                        ip_address=ip_address,
+                    )
+            
             cache.delete('dashboard_estadisticas')
             messages.success(request, 'Documento actualizado correctamente.')
             return redirect('documento_detalle', pk=doc.pk)
@@ -182,6 +226,9 @@ def documento_pdf(request, pk):
     if doc.prioridad == 'confidencial' and not request.user.has_perm('correspondencia.view_confidenciales'):
         messages.error(request, 'No tienes permiso para ver documentos confidenciales.')
         return redirect('documento_lista')
+
+    # Registrar acceso para auditoría (Ley 594)
+    registrar_acceso(request, doc, AccesoDocumento.Accion.IMPRIMIR)
 
     fecha_rad, hora_rad = doc.fecha_hora_radicacion
     trazabilidad = doc.trazabilidad.all().order_by('-fecha')

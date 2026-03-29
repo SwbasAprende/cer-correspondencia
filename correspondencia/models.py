@@ -229,3 +229,94 @@ class Trazabilidad(models.Model):
 
     def __str__(self):
         return f"{self.documento.radicado} | {self.estado_anterior} → {self.estado_nuevo}"
+
+
+class TRD(models.Model):
+    """
+    Tabla de Retención Documental según Ley 594 de 2000.
+    Define tiempos de conservación y disposición final de documentos.
+    """
+
+    class Disposicion(models.TextChoices):
+        CONSERVAR_TOTAL = 'CT', 'Conservar Total'
+        ELIMINAR        = 'E',  'Eliminar'
+        SELECCION       = 'S',  'Selección'
+        DIGITAL         = 'D',  'Digital'
+
+    serie             = models.CharField(max_length=100, verbose_name='Serie documental')
+    subserie          = models.CharField(max_length=100, blank=True, verbose_name='Subserie')
+    tipo_documental   = models.CharField(max_length=2, choices=Documento.Tipo.choices, verbose_name='Tipo de documento')
+    retencion_gestion = models.PositiveIntegerField(verbose_name='Años en archivo de gestión')
+    retencion_central = models.PositiveIntegerField(verbose_name='Años en archivo central')
+    disposicion_final = models.CharField(max_length=2, choices=Disposicion.choices, verbose_name='Disposición final')
+    procedimiento     = models.TextField(blank=True, verbose_name='Procedimiento de aplicación')
+    activo            = models.BooleanField(default=True, verbose_name='TRD activo')
+    fecha_creacion    = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Tabla de Retención Documental'
+        verbose_name_plural = 'Tablas de Retención Documental'
+        unique_together = ['serie', 'subserie', 'tipo_documental']
+        ordering = ['serie', 'subserie']
+
+    def __str__(self):
+        return f"{self.serie} — {self.subserie or 'Sin subserie'} — {self.get_tipo_documental_display()}"
+
+
+class AccesoDocumento(models.Model):
+    """
+    Registro de acceso a documentos para auditoría según Ley 594.
+    Requerido para trazabilidad completa de consultas.
+    """
+
+    class Accion(models.TextChoices):
+        VER        = 'VER',        'Ver documento'
+        DESCARGAR  = 'DESCARGAR',  'Descargar archivo'
+        IMPRIMIR   = 'IMPRIMIR',   'Imprimir documento'
+        EXPORTAR   = 'EXPORTAR',   'Exportar reporte'
+
+    documento   = models.ForeignKey(Documento, on_delete=models.CASCADE, related_name='accesos')
+    usuario     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    accion      = models.CharField(max_length=10, choices=Accion.choices)
+    fecha_hora  = models.DateTimeField(auto_now_add=True)
+    ip_address  = models.GenericIPAddressField(null=True, blank=True, verbose_name='Dirección IP')
+    user_agent  = models.TextField(max_length=500, blank=True, verbose_name='User Agent')
+
+    class Meta:
+        verbose_name = 'Acceso a documento'
+        verbose_name_plural = 'Accesos a documentos'
+        ordering = ['-fecha_hora']
+        indexes = [
+            models.Index(fields=['documento', 'fecha_hora']),
+            models.Index(fields=['usuario', 'fecha_hora']),
+        ]
+
+    def __str__(self):
+        return f"{self.documento.radicado} — {self.get_accion_display()} — {self.usuario}"
+
+
+class AuditoriaDocumento(models.Model):
+    """
+    Auditoría de cambios en campos de documentos según Ley 594.
+    Registra cada modificación para trazabilidad completa.
+    """
+
+    documento       = models.ForeignKey(Documento, on_delete=models.CASCADE, related_name='auditoria')
+    usuario         = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    campo_modificado= models.CharField(max_length=100, verbose_name='Campo modificado')
+    valor_anterior  = models.TextField(null=True, blank=True, verbose_name='Valor anterior')
+    valor_nuevo     = models.TextField(null=True, blank=True, verbose_name='Valor nuevo')
+    fecha_hora      = models.DateTimeField(auto_now_add=True)
+    ip_address      = models.GenericIPAddressField(null=True, blank=True, verbose_name='Dirección IP')
+
+    class Meta:
+        verbose_name = 'Auditoría de documento'
+        verbose_name_plural = 'Auditorías de documentos'
+        ordering = ['-fecha_hora']
+        indexes = [
+            models.Index(fields=['documento', 'fecha_hora']),
+            models.Index(fields=['usuario', 'fecha_hora']),
+        ]
+
+    def __str__(self):
+        return f"{self.documento.radicado} — {self.campo_modificado} — {self.fecha_hora.strftime('%d/%m/%Y %H:%M')}"

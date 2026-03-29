@@ -5,7 +5,7 @@ Define los 4 grupos con sus permisos asociados
 import logging
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from correspondencia.models import Documento, Trazabilidad
+from correspondencia.models import Documento, Trazabilidad, TRD, AccesoDocumento, AuditoriaDocumento
 from plantillas.models import PlantillaDocumento, DocumentoGenerado
 from usuarios.models import Usuario
 
@@ -29,6 +29,7 @@ def crear_grupos_sistema():
     ct_usuario = ContentType.objects.get_for_model(Usuario)
     ct_plantilla = ContentType.objects.get_for_model(PlantillaDocumento)
     ct_doc_generado = ContentType.objects.get_for_model(DocumentoGenerado)
+    ct_trd = ContentType.objects.get_for_model(TRD)
     
     # ── Obtener o crear permisos personalizados ──────────────────────────────
     perm_ver_confidenciales, _ = Permission.objects.get_or_create(
@@ -45,7 +46,7 @@ def crear_grupos_sistema():
         logger.warning('✅ Grupo "Administrador" creado')
 
     permisos_admin = Permission.objects.filter(
-        content_type__in=[ct_documento, ct_usuario, ct_plantilla, ct_doc_generado]
+        content_type__in=[ct_documento, ct_usuario, ct_plantilla, ct_doc_generado, ct_trd]
     )
     grupo_admin.permissions.set(permisos_admin)
     
@@ -103,7 +104,7 @@ def crear_grupos_sistema():
 
 GRUPOS DISPONIBLES:
 ───────────────────────────────────────────────────────────────────────────────
-1. Administrador    → Acceso total al sistema
+1. Administrador    → Acceso total al sistema + gestión TRD
 2. Radicador        → Crear, editar y cambiar estado de documentos
 3. Consultor        → Ver documentos y generar reportes
 4. Solo lectura     → Visualización sin acciones
