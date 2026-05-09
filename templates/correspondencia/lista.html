@@ -96,11 +96,11 @@
     {% for num in paginator.page_range %}
       {% if num == page_obj.number %}
         <span class="btn-cer btn-primario" style="pointer-events:none">{{ num }}</span>
-      {% elif num <= 2 or num >= paginator.num_pages %}
+      {% elif num <= 2 or num >= paginator.num_pages|add:"-1" %}
         <a href="?{% for key,value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value|urlencode }}&{% endif %}{% endfor %}page={{ num }}" class="btn-cer btn-secundario">{{ num }}</a>
-      {% elif num == 3 and page_obj.number > 4 %}
+      {% elif num == 3 and page_obj.number > 5 %}
         <span>…</span>
-      {% elif num == paginator.num_pages|add:"-2" and page_obj.number < paginator.num_pages %}
+      {% elif num == paginator.num_pages|add:"-2" and page_obj.number < paginator.num_pages|add:"-3" %}
         <span>…</span>
       {% endif %}
     {% endfor %}

@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib import messages  # ← esto faltaba globalmente
 from django.utils import timezone
 from django.core.cache import cache
 from correspondencia.models import Documento
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.forms import PasswordChangeForm
-
 
 DASHBOARD_CACHE_KEY = 'dashboard_estadisticas'
 DASHBOARD_CACHE_TIMEOUT = 300  # 5 minutos
@@ -51,7 +51,7 @@ def dashboard(request):
 
 
 @login_required
-@permission_required('usuarios.change_usuario', False)
+@permission_required('usuarios.change_usuario', login_url='/sin-permisos/')
 def usuario_lista(request):
     from .models import Usuario
     from django.contrib import messages
