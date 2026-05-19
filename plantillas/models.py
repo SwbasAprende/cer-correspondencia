@@ -9,11 +9,12 @@ class PlantillaDocumento(models.Model):
     """
 
     class Tipo(models.TextChoices):
-        OFICIO     = 'OF', 'Oficio'
+        CERTIFICACION     = 'CF', 'Certificacion'
         MEMORANDO  = 'MM', 'Memorando'
         CIRCULAR   = 'CR', 'Circular'
-        RESOLUCION = 'RS', 'Resolución'
+        BOLETIN    = 'BL', 'Boletin'
         ACTA       = 'AC', 'Acta'
+        INFORME    = 'IF', 'Informe'
 
     tipo        = models.CharField(max_length=2, choices=Tipo.choices, unique=True, verbose_name='Tipo de documento')
     nombre      = models.CharField(max_length=100, verbose_name='Nombre de la plantilla')

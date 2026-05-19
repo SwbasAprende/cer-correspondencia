@@ -22,11 +22,12 @@ class Documento(models.Model):
 
     # ── Tipos de documento ───────────────────────────────────────────────────
     class Tipo(models.TextChoices):
-        OFICIO      = 'OF', 'Oficio'
-        MEMORANDO   = 'MM', 'Memorando'
-        CIRCULAR    = 'CR', 'Circular'
-        RESOLUCION  = 'RS', 'Resolución'
-        ACTA        = 'AC', 'Acta'
+        CERTIFICACION     = 'CF', 'Certificacion'
+        MEMORANDO  = 'MM', 'Memorando'
+        CIRCULAR   = 'CR', 'Circular'
+        BOLETIN    = 'BL', 'Boletin'
+        ACTA       = 'AC', 'Acta'
+        INFORME    = 'IF', 'Informe'
 
     # ── Flujo del documento ──────────────────────────────────────────────────
     class Flujo(models.TextChoices):

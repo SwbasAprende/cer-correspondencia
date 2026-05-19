@@ -15,20 +15,22 @@
          onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,0.12)'"
          onmouseout="this.style.boxShadow='none'">
       <div style="font-size:2.5rem;margin-bottom:12px;">
-        {% if tipo_cod == 'OF' %}📄
+        {% if tipo_cod == 'CF' %}📄
         {% elif tipo_cod == 'MM' %}📋
         {% elif tipo_cod == 'CR' %}📢
-        {% elif tipo_cod == 'RS' %}⚖️
+        {% elif tipo_cod == 'BL' %}📋
         {% elif tipo_cod == 'AC' %}📑
+        {% elif tipo_cod == 'IF' %}📑
         {% endif %}
       </div>
       <div style="font-weight:700;font-size:1rem;color:#1b4332;margin-bottom:8px;">{{ tipo_nombre }}</div>
       <div style="font-size:0.8rem;color:#888;margin-bottom:16px;">
-        {% if tipo_cod == 'OF' %}Comunicación externa formal
+        {% if tipo_cod == 'CF' %}Comunicación externa formal
         {% elif tipo_cod == 'MM' %}Comunicación interna CER
         {% elif tipo_cod == 'CR' %}Comunicación general múltiple
-        {% elif tipo_cod == 'RS' %}Acto administrativo formal
+        {% elif tipo_cod == 'BL' %}Acto administrativo formal
         {% elif tipo_cod == 'AC' %}Registro de reuniones
+        {% elif tipo_cod == 'IF' %}Comunicación general múltiple
         {% endif %}
       </div>
       <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">

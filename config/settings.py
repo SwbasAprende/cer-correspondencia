@@ -149,11 +149,12 @@ CER_CONFIG = {
     "web": "",
     "version_sistema": "1.0.0",
     "tipos_documento": {
-        "OF": "Oficio",
+        "CF": "Certificacion",
         "MM": "Memorando",
         "CR": "Circular",
-        "RS": "Resolución",
+        "BL": "Boletin",
         "AC": "Acta",
+        "IF": "Informe",
     },
     "dias_respuesta": {
         "normal": 15,

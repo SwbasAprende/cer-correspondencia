@@ -116,9 +116,9 @@ def construir_membrete(estilos, config):
     elementos = []
 
     # Intentar cargar el logo
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_cer.jpg')
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_actualizado_cer.jpeg')
     if not os.path.exists(logo_path):
-        logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_cer.jpg')
+        logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_actualizado_cer.jpeg')
 
     if os.path.exists(logo_path):
         # Membrete con logo
