@@ -21,7 +21,7 @@ class DocumentoForm(forms.ModelForm):
             'actor':     forms.Select(attrs={'class': 'cer-input'}),
             'remitente':    forms.TextInput(attrs={'class': 'cer-input', 'placeholder': 'Nombre completo del remitente'}),
             'destinatario': forms.TextInput(attrs={'class': 'cer-input', 'placeholder': 'Nombre completo del destinatario'}),
-            'entidad':      forms.TextInput(attrs={'class': 'cer-input', 'placeholder': 'Organización o entidad'}),
+            'entidad':      forms.TextInput(attrs={'class': 'cer-input', 'placeholder': 'Organización o entidad del remitente'}),
             'asunto':       forms.TextInput(attrs={'class': 'cer-input', 'placeholder': 'Asunto del documento'}),
             'descripcion':  forms.Textarea(attrs={'class': 'cer-input', 'rows': 4, 'placeholder': 'Observaciones adicionales (opcional)'}),
             'fecha_documento': forms.DateInput(attrs={'class': 'cer-input', 'type': 'date'}),
